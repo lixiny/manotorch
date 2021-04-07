@@ -1,0 +1,14 @@
+*.sw*
+*.bak
+*_bak.py
+
+.vscode/
+.cache/
+.idea/
+__pycache__/
+build/
+dist/
+
+assets/
+assets/mano_layer.svg
+manotorch.egg-info/
