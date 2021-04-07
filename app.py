@@ -14,7 +14,7 @@ def main(args):
         use_pca=True,
         side="right",
         center_idx=None,
-        mano_assets_root="assets",
+        mano_assets_root="assets/mano",
         flat_hand_mean=args.flat_hand_mean,
         ncomps=ncomps,
     )
@@ -25,7 +25,7 @@ def main(args):
     # Generate random shape parameters
     random_shape = torch.rand(batch_size, 10)
     # Generate random pose parameters, including 3 values for global axis-angle rotation
-    random_pose = torch.rand(batch_size, 3 + ncomps)
+    random_pose = torch.zeros(batch_size, 3 + ncomps)
 
     mano_results: MANOOutput = mano_layer(random_pose, random_shape)
     verts = mano_results.verts

@@ -40,7 +40,7 @@ class ManoLayer(torch.nn.Module):
         rot_mode: str = "axisang",
         side: str = "right",
         center_idx: Optional[int] = None,
-        mano_assets_root: str = "assets/",
+        mano_assets_root: str = "assets/mano",
         use_pca: bool = False,
         flat_hand_mean: bool = True,  # Only used in pca mode
         ncomps: int = 15,  # Only used in pca mode
@@ -219,6 +219,14 @@ class ManoLayer(torch.nn.Module):
             tips = verts[:, [745, 317, 445, 556, 673]]
 
         joints = torch.cat([joints, tips], 1)
+
+        # ** original MANO joint order (right hand)
+        #                16-15-14-13-\
+        #                             \
+        #          17 --3 --2 --1------0
+        #        18 --6 --5 --4-------/
+        #        19 -12 -11 --10-----/
+        #          20 --9 --8 --7---/
 
         # Reorder joints to match SNAP definition
         joints = joints[:, [0, 13, 14, 15, 16, 1, 2, 3, 17, 4, 5, 6, 18, 10, 11, 12, 19, 7, 8, 9, 20]]

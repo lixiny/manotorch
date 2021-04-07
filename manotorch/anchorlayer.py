@@ -8,7 +8,7 @@ from .utils.anchorutils import anchor_load, recover_anchor, recover_anchor_batch
 
 
 class AnchorLayer(Module):
-    def __init__(self, anchor_root):
+    def __init__(self, anchor_root="assets/anchor"):
         super().__init__()
 
         face_vert_idx, anchor_weight, merged_vertex_assignment, anchor_mapping = anchor_load(anchor_root)
