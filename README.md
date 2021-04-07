@@ -7,20 +7,21 @@ It can be integrated into any architecture as a differentiable layer to predict 
 # Introduction
 
 This MANO layer is modified from the original [manopth](https://github.com/hassony2/manopth) with following features.
-- [x] Employ [lietorch](https://github.com/princeton-vl/lietorch) to perform $\exp()$ in SO(3) group.
+- [x] Employ [lietorch](https://github.com/princeton-vl/lietorch) to perform `exp()` in SO(3) group.
 - [x] Quaternion rotation mode. ([quatutils.py](https://github.com/lixiny/manotorch/blob/master/manotorch/utils/quatutils.py))
 - [x] Additional axes adaptation to covert MANO's coordinate frame into a *twist-splay-bend*  frame based on hand anatomy ([axislayer.py](https://github.com/lixiny/manotorch/blob/master/manotorch/axislayer.py)).
 
 <p align="center">
     <img src="doc/axes_adapt.png", height=240> <img src="doc/hand_anatomy.png", height=240>
 </p>
-<center>Left: original MANO coordinate system; Middle: axes adaptation;  Right: rotation based on the axes adaptation</center>
+<p align="center">
+    Left: original MANO coordinate system; Middle: axes adaptation;  Right: rotation based on the axes adaptation
+</p>
 
 - [x] Additional anchor interpolation to derive the anchor representation of MANO's vertices on palm ([anchorlayer](https://github.com/lixiny/manotorch/blob/master/manotorch/anchorlayer.py)).
 <p align="center">
     <img src="doc/anchors.png", height=240>
 </p>
-
 
 
 The last two features were developed and used for the paper *CPF: Learning a Contact Potential Field to Model the Hand-object Interaction*.
