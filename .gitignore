@@ -9,7 +9,6 @@
 __pycache__/
 build/
 dist/
-*_barriar.yaml
 assets/mano/
 assets/mano_layer.svg
 manotorch.egg-info/

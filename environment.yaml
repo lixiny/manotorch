@@ -1,4 +1,4 @@
-name: manotorch2
+name: manotorch
 
 channels:
   - pytorch

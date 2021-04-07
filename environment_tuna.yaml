@@ -1,0 +1,31 @@
+name: manotorch
+
+channels:
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+  - https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/
+  - defaults
+
+dependencies:
+  - python=3.7.9
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit~=11.0
+  - matplotlib
+  - numpy
+  - scipy
+  - pyyaml
+  - tqdm
+  - git
+  - pip:
+      - git+https://gitee.com/lixin-yang/chumpy.git
+      - git+https://gitee.com/lixin-yang/lietorch.git
+      - -i https://pypi.tuna.tsinghua.edu.cn/simple
+      - trimesh
+      - pyrender
+      - open3d
+      - opencv-python==4.3.0.36
+      - opencv-contrib-python~=4.3.0.36

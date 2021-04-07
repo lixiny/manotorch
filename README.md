@@ -7,18 +7,21 @@ It can be integrated into any architecture as a differentiable layer to predict 
 # Introduction
 
 This MANO layer is modified from the original [manopth](https://github.com/hassony2/manopth) with following features.
-- we adopt the [lietorch](https://github.com/princeton-vl/lietorch) to perform `exp()` in SO3 group.
-- we provide a quaternion rotation mode. (**quatutils**)
-- we provide additional axes adaptation to align MANO's coordinate frame with hand anatomy (**axislayer**).
+- [x] Employ [lietorch](https://github.com/princeton-vl/lietorch) to perform $\exp()$ in SO(3) group.
+- [x] Quaternion rotation mode. ([quatutils.py](https://github.com/lixiny/manotorch/blob/master/manotorch/utils/quatutils.py))
+- [x] Additional axes adaptation to covert MANO's coordinate frame into a *twist-splay-bend*  frame based on hand anatomy ([axislayer.py](https://github.com/lixiny/manotorch/blob/master/manotorch/axislayer.py)).
+
 <p align="center">
     <img src="doc/axes_adapt.png", height=240> <img src="doc/hand_anatomy.png", height=240>
 </p>
 <center>Left: original MANO coordinate system; Middle: axes adaptation;  Right: rotation based on the axes adaptation</center>
 
-- we provide additional anchor interpolation to derive the anchor representation of MANO's vertices on palm (**anchorlayer**).
+- [x] Additional anchor interpolation to derive the anchor representation of MANO's vertices on palm ([anchorlayer](https://github.com/lixiny/manotorch/blob/master/manotorch/anchorlayer.py)).
 <p align="center">
-    <img src="doc/anchors.png", height=200>
+    <img src="doc/anchors.png", height=240>
 </p>
+
+
 
 The last two features were developed and used for the paper *CPF: Learning a Contact Potential Field to Model the Hand-object Interaction*.
 But we find it also useful in researches including:
@@ -68,9 +71,11 @@ $ conda env create -f environment.yaml
 $ conda env update -f environment.yaml
 ```
 
+For user in China, we provide an alternative `environment_tuna.yaml` based on [Tuna Mirror](https://mirrors.tuna.tsinghua.edu.cn/) of Tsinghua University
+
 
 ## Download MANO pickle data-structures
-- Go to [MANO website](http://mano.is.tue.mpg.de/)
+- Visit [MANO website](http://mano.is.tue.mpg.de/)
 - Create an account by clicking *Sign Up* and provide your information
 - Download Models and Code (the downloaded file should have the format `mano_v*_*.zip`). Note that all code and data from this download falls under the [MANO license](http://mano.is.tue.mpg.de/license).
 - unzip and copy the `models` folder into the `assets/mano` folder
@@ -89,6 +94,8 @@ assets/
 To be able to import and use manotorch in another project, go to your `manotorch` folder and run
 ```
 $ pip install .
+# Or,
+$ pip install -e .
 ```
 
 # Usage
@@ -132,7 +139,7 @@ MANOOutput = namedtuple(
 # forward mano layer
 mano_output = mano_layer(random_pose, random_shape)
 
-# retrieve hand 778 vertices, 21 joints and 16 absolute transformations of each articulation
+# retrieve 778 vertices, 21 joints and 16 absolute transforms of each articulation
 verts = mano_output.verts
 joints = mano_output.joints
 transforms_abs = mano_output.transforms_abs
