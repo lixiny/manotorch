@@ -10,8 +10,8 @@ from .utils.quatutils import quaternion_to_rotation_matrix, quaternion_to_angle_
 
 from mano.webuser.smpl_handpca_wrapper_HAND_only import ready_arguments
 
-ModelOutput = namedtuple(
-    "ModelOutput",
+MANOOutput = namedtuple(
+    "MANOOutput",
     [
         "verts",
         "joints",
@@ -22,7 +22,7 @@ ModelOutput = namedtuple(
         "transforms_abs",
     ],
 )
-ModelOutput.__new__.__defaults__ = (None,) * len(ModelOutput._fields)
+MANOOutput.__new__.__defaults__ = (None,) * len(MANOOutput._fields)
 
 
 def th_with_zeros(tensor):
@@ -253,7 +253,7 @@ class ManoLayer(torch.nn.Module):
         rot_blob = self.rotation_layer(pose_coeffs)
         full_rots = rot_blob["full_rots"]  # TENSOR
         skinning_blob = self.skinning_layer(full_rots, betas)
-        output = ModelOutput(
+        output = MANOOutput(
             verts=skinning_blob["verts"],
             joints=skinning_blob["joints"],
             center_idx=self.center_idx,

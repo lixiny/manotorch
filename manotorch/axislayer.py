@@ -16,6 +16,7 @@ class AxisLayer(Module):
         """
         input: hand_joints[B, 21, 3], transf[B, 16, 4, 4]
         output: b_axis[B, 15, 3], u_axis[B, 15, 3], l_axis[B, 15, 3]
+        b: back; u: up; l: left
         """
         bs = transf.shape[0]
 

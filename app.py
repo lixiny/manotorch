@@ -1,46 +1,52 @@
 import torch
-from manotorch.manolayer import ManoLayer
+import argparse
+from manotorch.manolayer import ManoLayer, MANOOutput
 from manotorch.axislayer import AxisLayer
-from manotorch.utils.visutils import display_hand_matplot, display_hand_pyrender,display_hand_open3d
+from manotorch.anchorlayer import AnchorLayer
+from manotorch.utils.visutils import display_hand_matplot, display_hand_pyrender, display_hand_open3d
 
 
+def main(args):
+    # Initialize MANO layer
+    ncomps = 15
+    mano_layer = ManoLayer(
+        rot_mode="axisang",
+        use_pca=True,
+        side="right",
+        center_idx=None,
+        mano_assets_root="assets",
+        flat_hand_mean=args.flat_hand_mean,
+        ncomps=ncomps,
+    )
+    axis_layer = AxisLayer()
+    anchor_layer = AnchorLayer(anchor_root="assets/anchor")
 
-batch_size = 1
-# Select number of principal components for pose space
-ncomps = 6
+    batch_size = 1
+    # Generate random shape parameters
+    random_shape = torch.rand(batch_size, 10)
+    # Generate random pose parameters, including 3 values for global axis-angle rotation
+    random_pose = torch.rand(batch_size, 3 + ncomps)
 
-# Initialize MANO layer
-mano_layer = ManoLayer(
-    rot_mode="axisang",
-    use_pca=True,
-    side="right",
-    center_idx=None,
-    mano_assets_root="assets",
-    flat_hand_mean=False,
-    ncomps=18,
-)
+    mano_results: MANOOutput = mano_layer(random_pose, random_shape)
+    verts = mano_results.verts
+    joints = mano_results.joints
+    transforms_abs = mano_results.transforms_abs
 
-axis_layer = AxisLayer()
+    anchors = anchor_layer(verts)
+    bul_axes = axis_layer(joints, transforms_abs)
 
-# Generate random shape parameters
-random_shape = torch.rand(batch_size, 10)
-# Generate random pose parameters, including 3 values for global axis-angle rotation
-random_pose = torch.rand(batch_size, 21)
-
-# Forward pass through MANO layer
-mano_results = mano_layer(random_pose, random_shape)
-verts = mano_results.verts
-joints = mano_results.joints
-full_poses = mano_results.full_poses
-center_idx = mano_results.center_idx
-transforms_abs = mano_results.transforms_abs
-
-bul_axes = axis_layer(joints, transforms_abs)
-
-display_hand_pyrender(mano_results, mano_layer.th_faces, bul_axes=bul_axes)
+    if args.display == "pyrender":
+        display_hand_pyrender(mano_results, mano_layer.th_faces, bul_axes=bul_axes, anchors=anchors)
+    elif args.display == "open3d":
+        display_hand_open3d(mano_results, mano_layer.th_faces)
+    elif args.display == "matplot":
+        display_hand_matplot(mano_results, mano_layer.th_faces)
+    else:
+        print("Unknown display")
 
 
-#
-# a = torch.isclose(full_poses, full_poses_)
-# diff = full_transforms_abs - full_transforms_abs_
-# print(diff.max())
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--flat_hand_mean", action="store_true", help="Use flat hand as mean")
+    parser.add_argument("--display", choices=["matplot", "pyrender", "open3d"], default="pyrender", type=str)
+    main(parser.parse_args())

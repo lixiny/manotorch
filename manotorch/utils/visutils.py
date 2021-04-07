@@ -125,6 +125,7 @@ def display_hand_pyrender(
     faces=None,
     batch_idx=0,
     show_axis=True,
+    anchors=None,
     bul_axes=None
 ):
     import trimesh
@@ -159,7 +160,7 @@ def display_hand_pyrender(
 
     # add joints
     for j in range(21):
-        sm = trimesh.creation.uv_sphere(radius=3)
+        sm = trimesh.creation.uv_sphere(radius=2.5)
         sm.visual.vertex_colors = joint_colors
         tfs = np.tile(np.eye(4), (1, 1, 1))
         tfs[0, :3, 3] = joints[j]
@@ -183,6 +184,16 @@ def display_hand_pyrender(
                 axis = trimesh.creation.axis(transform=transforms[i], origin_size=3, axis_length=21)
                 axis = pyrender.Mesh.from_trimesh(axis, smooth=False)
                 scene.add(axis)
+
+    if anchors is not None:
+        anchors = anchors[batch_idx]
+        for k in range(len(anchors)):
+            anchor_sphere = trimesh.creation.box(extents=(3,3,3))
+            anchor_sphere.visual.vertex_colors = np.array([250, 255, 0, 255])
+            tfs = np.tile(np.eye(4), (1, 1, 1))
+            tfs[0, :3, 3] = anchors[k] * 1000 + dt
+            anchor_mesh = pyrender.Mesh.from_trimesh(anchor_sphere, poses=tfs)
+            scene.add(anchor_mesh)
 
     pyrender.Viewer(scene, viewport_size=(1280, 768), use_raymond_lighting=True)
 

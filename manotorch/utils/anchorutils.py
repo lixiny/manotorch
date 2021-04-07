@@ -104,17 +104,6 @@ def get_rev_anchor_mapping(anchor_mapping, n_region=None):
         res[region_id].append(anchor_id)
     return res
 
-
-def test():
-    res = anchor_load_driver("./data/info")
-    for x in res:
-        try:
-            print(x.shape)
-        except AttributeError:
-            print(x)
-    print(get_rev_anchor_mapping(res[3]))
-
-
 def get_mask_from_index(mask: np.ndarray, total: int):
     res = np.zeros((total,), dtype=np.int)
     res[mask] = 1
@@ -137,6 +126,15 @@ def masking_load_driver(anchor_path, palm_vert_idx_path):
     hand_palm_vert_mask = get_mask_from_index(hand_palm_vert_idx, n_vert)
     return vertex_assignment_merged, hand_palm_vert_mask
 
+
+def test():
+    res = anchor_load_driver("./assets/anchor")
+    for x in res:
+        try:
+            print(x.shape)
+        except AttributeError:
+            print(x)
+    print(get_rev_anchor_mapping(res[3]))
 
 # testing
 if __name__ == "__main__":
