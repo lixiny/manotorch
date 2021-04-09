@@ -263,7 +263,6 @@ class ManoLayer(torch.nn.Module):
         elif self.rot_mode == "quat":
             rot_blob = self.rotation_by_quaternion(pose_coeffs)
 
-        rot_blob = self.rotation_layer(pose_coeffs)
         full_rots = rot_blob["full_rots"]  # TENSOR
         skinning_blob = self.skinning_layer(full_rots, betas)
         output = MANOOutput(
