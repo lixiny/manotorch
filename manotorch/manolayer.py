@@ -5,7 +5,8 @@ import warnings
 
 import numpy as np
 import torch
-import lietorch
+# import lietorch
+from .utils.rodrigues import rodrigues
 from .utils.quatutils import quaternion_to_rotation_matrix, quaternion_to_angle_axis
 
 from mano.webuser.smpl_handpca_wrapper_HAND_only import ready_arguments
@@ -53,10 +54,8 @@ class ManoLayer(torch.nn.Module):
         self.use_pca = use_pca
 
         if rot_mode == "axisang":
-            self.rotation_layer = self.rotation_by_axisang
             self.rot_dim = 3
         elif rot_mode == "quat":
-            self.rotation_layer = self.rotation_by_quaternion
             self.rot_dim = 4
             if use_pca == True or flat_hand_mean == False:
                 warnings.warn("Quat mode doesn't support PCA pose or flat_hand_mean !")
@@ -106,7 +105,8 @@ class ManoLayer(torch.nn.Module):
         full_poses = torch.cat([root_pose_coeffs, self.th_hands_mean + full_hand_pose], 1)
 
         pose_vec_reshaped = full_poses.contiguous().view(-1, 3)  # (B x N, 3)
-        rot_mats = lietorch.SO3.exp(pose_vec_reshaped).matrix()[..., :3, :3]  # (B x N, 3, 3)
+        rot_mats = rodrigues(pose_vec_reshaped) # (B x N, 3, 3)
+        # rot_mats = lietorch.SO3.exp(pose_vec_reshaped).matrix()[..., :3, :3]  # (B x N, 3, 3)
         full_rots = rot_mats.view(batch_size, 16, 3, 3)
         rotation_blob = {"full_rots": full_rots, "full_poses": full_poses}
         return rotation_blob
@@ -257,6 +257,11 @@ class ManoLayer(torch.nn.Module):
         return skinning_blob
 
     def forward(self, pose_coeffs: torch.Tensor, betas: torch.Tensor, **kwargs):
+
+        if self.rot_mode == "axisang":
+            rot_blob = self.rotation_by_axisang(pose_coeffs)
+        elif self.rot_mode == "quat":
+            rot_blob = self.rotation_by_quaternion(pose_coeffs)
 
         rot_blob = self.rotation_layer(pose_coeffs)
         full_rots = rot_blob["full_rots"]  # TENSOR

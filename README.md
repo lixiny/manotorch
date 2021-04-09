@@ -7,7 +7,6 @@ It can be integrated into any architecture as a differentiable layer to predict 
 # Introduction
 
 This MANO layer is modified from the original [manopth](https://github.com/hassony2/manopth) with following features.
-- [x] Employ [lietorch](https://github.com/princeton-vl/lietorch) to perform $\exp()$ in SO(3) group.
 - [x] Quaternion rotation mode. ([quatutils.py](https://github.com/lixiny/manotorch/blob/master/manotorch/utils/quatutils.py))
 - [x] Additional axes adaptation to covert MANO's coordinate frame into a *twist-splay-bend*  frame based on hand anatomy ([axislayer.py](https://github.com/lixiny/manotorch/blob/master/manotorch/axislayer.py)).
 
@@ -20,6 +19,8 @@ This MANO layer is modified from the original [manopth](https://github.com/hasso
 <p align="center">
     <img src="doc/anchors.png", height=240>
 </p>
+
+- [ ] Employ [lietorch](https://github.com/princeton-vl/lietorch) to perform $\exp()$ in SO(3) group.
 
 
 

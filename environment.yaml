@@ -20,7 +20,6 @@ dependencies:
   - git
   - pip:
       - git+https://github.com/hassony2/chumpy.git
-      - git+https://github.com/princeton-vl/lietorch.git
       - trimesh
       - pyrender
       - open3d

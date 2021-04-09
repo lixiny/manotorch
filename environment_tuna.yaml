@@ -22,7 +22,6 @@ dependencies:
   - git
   - pip:
       - git+https://gitee.com/lixin-yang/chumpy.git
-      - git+https://gitee.com/lixin-yang/lietorch.git
       - -i https://pypi.tuna.tsinghua.edu.cn/simple
       - trimesh
       - pyrender
