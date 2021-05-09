@@ -82,16 +82,22 @@ For user in China, we provide an alternative `environment_tuna.yaml` based on [T
 - Visit [MANO website](http://mano.is.tue.mpg.de/)
 - Create an account by clicking *Sign Up* and provide your information
 - Download Models and Code (the downloaded file should have the format `mano_v*_*.zip`). Note that all code and data from this download falls under the [MANO license](http://mano.is.tue.mpg.de/license).
-- unzip and copy the `models` folder into the `assets/mano` folder
-- Your `assets` folder structure should look like this:
+- unzip and copy the contents in `mano_v*_*/` folder to the `assets/mano/` folder
+- Your `assets/mano` folder structure should look like this:
 ```
-assets/
-├── anchor/
-└── mano/
-    ├── LICENSE.txt
-    ├── MANO_LEFT.pkl
-    ├── MANO_RIGHT.pkl
-    └── ...
+assets/mano
+        ├── info.txt
+        ├── __init__.py
+        ├── LICENSE.txt
+        ├── models
+        │   ├── info.txt
+        │   ├── LICENSE.txt
+        │   ├── MANO_LEFT.pkl
+        │   ├── MANO_RIGHT.pkl
+        │   ├── SMPLH_female.pkl
+        │   └── SMPLH_male.pkl
+        └── webuser
+            └── ...
 ```
 
 ## Optional: Install manotorch package

@@ -63,7 +63,8 @@ class ManoLayer(torch.nn.Module):
             raise NotImplementedError(f"Unrecognized rotation mode, expect [pca|axisang|quat], got {rot_mode}")
 
         # load model according to side flag
-        mano_assets_path = os.path.join(mano_assets_root, f"MANO_{side.upper()}.pkl")  # eg.  MANO_RIGHT.pkl
+        mano_assets_path = os.path.join(mano_assets_root, "models", f"MANO_{side.upper()}.pkl")  # eg.  MANO_RIGHT.pkl
+        assert os.path.isfile(mano_assets_path), "Can not find MANO assets, please follow steps in README.md"
 
         # parse and register stuff
         smpl_data = ready_arguments(mano_assets_path)
