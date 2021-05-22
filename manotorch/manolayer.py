@@ -5,6 +5,7 @@ import warnings
 
 import numpy as np
 import torch
+
 # import lietorch
 from .utils.rodrigues import rodrigues
 from .utils.quatutils import quaternion_to_rotation_matrix, quaternion_to_angle_axis
@@ -106,7 +107,7 @@ class ManoLayer(torch.nn.Module):
         full_poses = torch.cat([root_pose_coeffs, self.th_hands_mean + full_hand_pose], 1)
 
         pose_vec_reshaped = full_poses.contiguous().view(-1, 3)  # (B x N, 3)
-        rot_mats = rodrigues(pose_vec_reshaped) # (B x N, 3, 3)
+        rot_mats = rodrigues(pose_vec_reshaped)  # (B x N, 3, 3)
         # rot_mats = lietorch.SO3.exp(pose_vec_reshaped).matrix()[..., :3, :3]  # (B x N, 3, 3)
         full_rots = rot_mats.view(batch_size, 16, 3, 3)
         rotation_blob = {"full_rots": full_rots, "full_poses": full_poses}
@@ -116,12 +117,12 @@ class ManoLayer(torch.nn.Module):
         batch_size = pose_coeffs.shape[0]
         full_quat_poses = pose_coeffs.view((batch_size, 16, 4))  # [B. 16, 4]
         full_rots = quaternion_to_rotation_matrix(full_quat_poses)  # [B, 16, 3, 3]
-        full_poses = quaternion_to_angle_axis(full_quat_poses).reshape(batch_size, -1) # [B, 16 x 3]
+        full_poses = quaternion_to_angle_axis(full_quat_poses).reshape(batch_size, -1)  # [B, 16 x 3]
 
         rotation_blob = {"full_rots": full_rots, "full_poses": full_poses}
         return rotation_blob
 
-    def skinning_layer(self, full_rots, betas):
+    def skinning_layer(self, full_rots: torch.Tensor, betas: Optional[torch.Tensor]):
         batch_size = full_rots.shape[0]
         n_rot = int(full_rots.shape[1])  # 16
 
@@ -131,10 +132,13 @@ class ManoLayer(torch.nn.Module):
 
         # ============== Shape Blend Shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         # $ B_S = \sum_{n=1}^{|\arrow{\beta}|} \beta_n \mathbf{S}_n $  #Eq.4 in MANO
-        B_S = torch.matmul(self.th_shapedirs, betas.transpose(1, 0)).permute(2, 0, 1)
+        _betas = self.th_betas if betas is None else betas
+        B_S = torch.matmul(self.th_shapedirs, _betas.transpose(1, 0)).permute(2, 0, 1)  # (?, 778, 3), ? = 1, or B
 
         # $ \mathcal{J}(\bar{\mathbf{T}} + B_S)$ # Eq.10 in SMPL
-        J = torch.matmul(self.th_J_regressor, (self.th_v_template + B_S))  # (B, 16, 3)
+        J = torch.matmul(self.th_J_regressor, (self.th_v_template + B_S))  # (?, 16, 3)
+        if betas is None:
+            J = J.repeat(batch_size, 1, 1)  # (B, 16, 3)
 
         # ============== Pose Blender Shape >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         flat_rot = torch.eye(3, dtype=full_rots.dtype, device=full_rots.device)  # (3, 3)
@@ -234,7 +238,7 @@ class ManoLayer(torch.nn.Module):
 
         if self.center_idx is not None:
             center_joint = joints[:, self.center_idx].unsqueeze(1)
-        else:  # ! dummy center joint (B, 1, 3)
+        else:  # dummy center joint (B, 1, 3)
             center_joint = torch.zeros_like(joints[:, 0].unsqueeze(1))
 
         # apply center shift on verts and joints
@@ -254,11 +258,11 @@ class ManoLayer(torch.nn.Module):
             "joints": joints,
             "center_joint": center_joint,
             "transforms_abs": global_transf,
+            "betas": _betas,
         }
         return skinning_blob
 
-    def forward(self, pose_coeffs: torch.Tensor, betas: torch.Tensor, **kwargs):
-
+    def forward(self, pose_coeffs: torch.Tensor, betas: Optional[torch.Tensor] = None, **kwargs):
         if self.rot_mode == "axisang":
             rot_blob = self.rotation_by_axisang(pose_coeffs)
         elif self.rot_mode == "quat":
@@ -272,7 +276,49 @@ class ManoLayer(torch.nn.Module):
             center_idx=self.center_idx,
             center_joint=skinning_blob["center_joint"],
             full_poses=rot_blob["full_poses"],
-            betas=betas,
+            betas=skinning_blob["betas"],
             transforms_abs=skinning_blob["transforms_abs"],
         )
         return output
+
+    def get_rotation_center(self, betas: Optional[torch.Tensor] = None):
+        """
+
+        V = MANO(theta, beta)
+
+        Then we apply a rotation R on the vertices V
+        V_1 = R @ V
+
+        or, we can apply a rotation R on the global components of theta: first 3 elements of the theta
+        theta' = CONCAT( SO3.log(R @ SO3.exp(theta[:3])), theta[3:] )
+
+        V_2 = MANO(theta', beta)
+
+        No doubt that, V_1 != V_2
+        we found V_1 = V_2 + t, the t is an unknown translation offset
+
+        Directly apply R on V would rotate V w.r.t the rotation center at V's [0,0,0] coordinate.
+        However, apply R on the theta[:3] would cause the vertices rotate w.r.t to a rotation center at
+        a non-zero, soley beta-sepcified center, C
+
+        In other word, apply any disturb on the theta[:3] would not change the C's coordinates.
+        the following code describe how we acquire the rotation center C
+
+        This function will be called at artiboost/utils/refineunit.py in our upcoming work ArtiBoost
+        """
+
+        if betas is None:
+            betas = self.th_betas
+
+        batch_size = betas.shape[0]
+        if self.center_idx is not None:
+            return torch.zeros((batch_size, 3), device=betas.device)
+
+        # $ B_S = \sum_{n=1}^{|\arrow{\beta}|} \beta_n \mathbf{S}_n $  #Eq.4 in MANO
+        B_S = torch.matmul(self.th_shapedirs, betas.transpose(1, 0)).permute(2, 0, 1)
+
+        # $ \mathcal{J}(\bar{\mathbf{T}} + B_S)$ # Eq.10 in SMPL
+        J = torch.matmul(self.th_J_regressor, (self.th_v_template + B_S))  # (B, 16, 3)
+
+        root_rotation_center = J[:, 0, :].contiguous().view(-1, 3)
+        return root_rotation_center
