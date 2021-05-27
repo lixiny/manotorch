@@ -53,13 +53,17 @@ class ManoLayer(torch.nn.Module):
         self.rot_mode = rot_mode
         self.side = side
         self.use_pca = use_pca
+        self.mano_assets_root = mano_assets_root
+        self.flat_hand_mean = flat_hand_mean
+        self.ncomps = ncomps if use_pca else -1
+
 
         if rot_mode == "axisang":
             self.rot_dim = 3
         elif rot_mode == "quat":
             self.rot_dim = 4
             if use_pca == True or flat_hand_mean == False:
-                warnings.warn("Quat mode doesn't support PCA pose or flat_hand_mean !")
+                warnings.warn("Quat mode doesn't support PCA pose or non flat_hand_mean !")
         else:
             raise NotImplementedError(f"Unrecognized rotation mode, expect [pca|axisang|quat], got {rot_mode}")
 
