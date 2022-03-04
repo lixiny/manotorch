@@ -1,4 +1,3 @@
-
 # quat format w,x,y,z
 import torch
 import torch.nn.functional as torch_f
@@ -68,101 +67,66 @@ def quaternion_mul(q, r):
     return torch.stack((w, x, y, z), dim=1).view(original_shape)
 
 
-def quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
-    """Convert quaternion vector to angle axis of rotation.
-    The quaternion should be in (w, x, y, z) format.
-
-    Adapted from ceres C++ library: ceres-solver/include/ceres/rotation.h
-
-    Args:
-        quaternion (torch.Tensor): tensor with quaternions.
-
-    Return:
-        torch.Tensor: tensor with angle axis of rotation.
-
-    Shape:
-        - Input: :math:`(*, 4)` where `*` means, any number of dimensions
-        - Output: :math:`(*, 3)`
-
-    Example:
-        >>> quaternion = torch.rand(2, 4)  # Nx4
-        >>> angle_axis = quaternion_to_angle_axis(quaternion)  # Nx3
-    """
-    if not torch.is_tensor(quaternion):
-        raise TypeError("Input type is not a torch.Tensor. Got {}".format(type(quaternion)))
-
-    if not quaternion.shape[-1] == 4:
-        raise ValueError("Input must be a tensor of shape Nx4 or 4. Got {}".format(quaternion.shape))
-    # unpack input and compute conversion
-    q1: torch.Tensor = quaternion[..., 1]
-    q2: torch.Tensor = quaternion[..., 2]
-    q3: torch.Tensor = quaternion[..., 3]
-    sin_squared_theta: torch.Tensor = q1 * q1 + q2 * q2 + q3 * q3
-
-    sin_theta: torch.Tensor = torch.sqrt(sin_squared_theta)
-    cos_theta: torch.Tensor = quaternion[..., 0]
-    two_theta: torch.Tensor = 2.0 * torch.where(
-        cos_theta < 0.0, torch.atan2(-sin_theta, -cos_theta), torch.atan2(sin_theta, cos_theta)
-    )
-
-    k_pos: torch.Tensor = two_theta / sin_theta
-    k_neg: torch.Tensor = 2.0 * torch.ones_like(sin_theta)
-    k: torch.Tensor = torch.where(sin_squared_theta > 0.0, k_pos, k_neg)
-
-    angle_axis: torch.Tensor = torch.zeros_like(quaternion)[..., :3]
-    angle_axis[..., 0] += q1 * k
-    angle_axis[..., 1] += q2 * k
-    angle_axis[..., 2] += q3 * k
-    return angle_axis
-
-
 def angle_axis_to_quaternion(angle_axis: torch.Tensor) -> torch.Tensor:
-    r"""Convert an angle axis to a quaternion.
-    The quaternion vector has components in (w, x, y, z) format.
-
-    Adapted from ceres C++ library: ceres-solver/include/ceres/rotation.h
-
+    """
+    Convert rotations given as axis/angle to quaternions.
     Args:
-        angle_axis (torch.Tensor): tensor with angle axis.
-
-    Return:
-        torch.Tensor: tensor with quaternion.
-
-    Shape:
-        - Input: :math:`(*, 3)` where `*` means, any number of dimensions
-        - Output: :math:`(*, 4)`
-
-    Example:
-        >>> angle_axis = torch.rand(2, 4)  # Nx4
-        >>> quaternion = angle_axis_to_quaternion(angle_axis)  # Nx3
+        axis_angle: Rotations given as a vector in axis angle form,
+            as a tensor of shape (..., 3), where the magnitude is
+            the angle turned anticlockwise in radians around the
+            vector's direction.
+    Returns:
+        quaternions with real part first, as tensor of shape (..., 4).
     """
     if not torch.is_tensor(angle_axis):
         raise TypeError("Input type is not a torch.Tensor. Got {}".format(type(angle_axis)))
 
     if not angle_axis.shape[-1] == 3:
         raise ValueError("Input must be a tensor of shape Nx3 or 3. Got {}".format(angle_axis.shape))
-    # unpack input and compute conversion
-    a0: torch.Tensor = angle_axis[..., 0:1]
-    a1: torch.Tensor = angle_axis[..., 1:2]
-    a2: torch.Tensor = angle_axis[..., 2:3]
-    theta_squared: torch.Tensor = a0 * a0 + a1 * a1 + a2 * a2
 
-    theta: torch.Tensor = torch.sqrt(theta_squared)
-    half_theta: torch.Tensor = theta * 0.5
+    angles = torch.norm(angle_axis, p=2, dim=-1, keepdim=True)
+    half_angles = angles * 0.5
+    eps = 1e-6
+    small_angles = angles.abs() < eps
+    sin_half_angles_over_angles = torch.empty_like(angles)
+    sin_half_angles_over_angles[~small_angles] = torch.sin(half_angles[~small_angles]) / angles[~small_angles]
+    # for x small, sin(x/2) is about x/2 - (x/2)^3/6
+    # so sin(x/2)/x is about 1/2 - (x*x)/48
+    sin_half_angles_over_angles[small_angles] = 0.5 - (angles[small_angles] * angles[small_angles]) / 48
+    quaternions = torch.cat([torch.cos(half_angles), angle_axis * sin_half_angles_over_angles], dim=-1)
+    return quaternions
 
-    mask: torch.Tensor = theta_squared > 0.0
-    ones: torch.Tensor = torch.ones_like(half_theta)
 
-    k_neg: torch.Tensor = 0.5 * ones
-    k_pos: torch.Tensor = torch.sin(half_theta) / theta
-    k: torch.Tensor = torch.where(mask, k_pos, k_neg)
-    w: torch.Tensor = torch.where(mask, torch.cos(half_theta), ones)
+def quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
+    """
+    Convert rotations given as quaternions to axis/angle.
+    Args:
+        quaternions: quaternions with real part first,
+            as tensor of shape (..., 4).
+    Returns:
+        Rotations given as a vector in axis angle form, as a tensor
+            of shape (..., 3), where the magnitude is the angle
+            turned anticlockwise in radians around the vector's
+            direction.
+    """
 
-    quaternion: torch.Tensor = torch.zeros_like(angle_axis)
-    quaternion[..., 0:1] += a0 * k
-    quaternion[..., 1:2] += a1 * k
-    quaternion[..., 2:3] += a2 * k
-    return torch.cat([w, quaternion], dim=-1)
+    if not torch.is_tensor(quaternion):
+        raise TypeError("Input type is not a torch.Tensor. Got {}".format(type(quaternion)))
+
+    if not quaternion.shape[-1] == 4:
+        raise ValueError("Input must be a tensor of shape Nx4 or 4. Got {}".format(quaternion.shape))
+
+    norms = torch.norm(quaternion[..., 1:], p=2, dim=-1, keepdim=True)
+    half_angles = torch.atan2(norms, quaternion[..., :1])
+    angles = 2 * half_angles
+    eps = 1e-6
+    small_angles = angles.abs() < eps
+    sin_half_angles_over_angles = torch.empty_like(angles)
+    sin_half_angles_over_angles[~small_angles] = torch.sin(half_angles[~small_angles]) / angles[~small_angles]
+    # for x small, sin(x/2) is about x/2 - (x/2)^3/6
+    # so sin(x/2)/x is about 1/2 - (x*x)/48
+    sin_half_angles_over_angles[small_angles] = 0.5 - (angles[small_angles] * angles[small_angles]) / 48
+    return quaternion[..., 1:] / sin_half_angles_over_angles
 
 
 def quaternion_to_rotation_matrix(quaternion: torch.Tensor) -> torch.Tensor:
