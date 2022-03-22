@@ -58,13 +58,13 @@ def quaternion_mul(q, r):
 
     # Compute outer product
     # terms; ( * , 4, 4)
-    terms = torch.bmm(r.view(-1, 4, 1), q.view(-1, 1, 4))
+    terms = torch.bmm(r.reshape(-1, 4, 1), q.reshape(-1, 1, 4))
 
     w = terms[:, 0, 0] - terms[:, 1, 1] - terms[:, 2, 2] - terms[:, 3, 3]
     x = terms[:, 0, 1] + terms[:, 1, 0] + terms[:, 2, 3] - terms[:, 3, 2]
     y = terms[:, 0, 2] - terms[:, 1, 3] + terms[:, 2, 0] + terms[:, 3, 1]
     z = terms[:, 0, 3] + terms[:, 1, 2] - terms[:, 2, 1] + terms[:, 3, 0]
-    return torch.stack((w, x, y, z), dim=1).view(original_shape)
+    return torch.stack((w, x, y, z), dim=1).reshape(original_shape)
 
 
 def angle_axis_to_quaternion(angle_axis: torch.Tensor) -> torch.Tensor:
