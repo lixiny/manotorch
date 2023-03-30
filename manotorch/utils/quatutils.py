@@ -1,10 +1,11 @@
-
 # quat format w,x,y,z
 import torch
 import torch.nn.functional as torch_f
+from deprecation import deprecated
 
 
-def normalize_quaternion(quaternion: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
+@deprecated("This function is deprecated and will be removed in future versions.")
+def _normalize_quaternion(quaternion: torch.Tensor, eps: float = 1e-12) -> torch.Tensor:
     r"""Normalizes a quaternion.
     The quaternion should be in (w, x, y, z) format.
 
@@ -30,7 +31,8 @@ def normalize_quaternion(quaternion: torch.Tensor, eps: float = 1e-12) -> torch.
     return torch_f.normalize(quaternion, p=2, dim=-1, eps=eps)
 
 
-def quaternion_inv(q):
+@deprecated("This function is deprecated and will be removed in future versions.")
+def _quaternion_inv(q):
     """
     inverse quaternion(s) q
     The quaternion should be in (w, x, y, z) format.
@@ -45,7 +47,8 @@ def quaternion_inv(q):
     return q_conj / q_norm
 
 
-def quaternion_mul(q, r):
+@deprecated("This function is deprecated and will be removed in future versions.")
+def _quaternion_mul(q, r):
     """
     Multiply quaternion(s) q with quaternion(s) r.
     The quaternion should be in (w, x, y, z) format.
@@ -68,7 +71,9 @@ def quaternion_mul(q, r):
     return torch.stack((w, x, y, z), dim=1).view(original_shape)
 
 
-def quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
+@deprecated(f"This function is deprecated and will be removed in future versions. "
+            f"Use manotorch.utils.geometry.quaternion_to_axis_angle instead.")
+def _quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
     """Convert quaternion vector to angle axis of rotation.
     The quaternion should be in (w, x, y, z) format.
 
@@ -101,9 +106,8 @@ def quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
 
     sin_theta: torch.Tensor = torch.sqrt(sin_squared_theta)
     cos_theta: torch.Tensor = quaternion[..., 0]
-    two_theta: torch.Tensor = 2.0 * torch.where(
-        cos_theta < 0.0, torch.atan2(-sin_theta, -cos_theta), torch.atan2(sin_theta, cos_theta)
-    )
+    two_theta: torch.Tensor = 2.0 * torch.where(cos_theta < 0.0, torch.atan2(-sin_theta, -cos_theta),
+                                                torch.atan2(sin_theta, cos_theta))
 
     k_pos: torch.Tensor = two_theta / sin_theta
     k_neg: torch.Tensor = 2.0 * torch.ones_like(sin_theta)
@@ -116,7 +120,9 @@ def quaternion_to_angle_axis(quaternion: torch.Tensor) -> torch.Tensor:
     return angle_axis
 
 
-def angle_axis_to_quaternion(angle_axis: torch.Tensor) -> torch.Tensor:
+@deprecated(f"This function is deprecated and will be removed in future versions. "
+            f"Use manotorch.utils.geometry.axis_angle_to_quaternion instead.")
+def _angle_axis_to_quaternion(angle_axis: torch.Tensor) -> torch.Tensor:
     r"""Convert an angle axis to a quaternion.
     The quaternion vector has components in (w, x, y, z) format.
 
@@ -165,7 +171,9 @@ def angle_axis_to_quaternion(angle_axis: torch.Tensor) -> torch.Tensor:
     return torch.cat([w, quaternion], dim=-1)
 
 
-def quaternion_to_rotation_matrix(quaternion: torch.Tensor) -> torch.Tensor:
+@deprecated(f"This function is deprecated and will be removed in future versions. "
+            f"Use manotorch.utils.geometry.quaternion_to_matrix instead.")
+def _quaternion_to_rotation_matrix(quaternion: torch.Tensor) -> torch.Tensor:
     r"""Convert a quaternion to a rotation matrix.
     The quaternion vector has components in (w, x, y, z) format.
 
@@ -221,7 +229,8 @@ def quaternion_to_rotation_matrix(quaternion: torch.Tensor) -> torch.Tensor:
     return rotation_matrix
 
 
-def quaternion_norm(quaternion):
+@deprecated("This function is deprecated and will be removed in future versions.")
+def _quaternion_norm(quaternion):
     r"""Computes norm of quaternion.
     The quaternion should be in (w, x, y, z) format.
 
@@ -240,7 +249,8 @@ def quaternion_norm(quaternion):
     return torch.sqrt(torch.sum(torch.pow(quaternion, 2), dim=-1))
 
 
-def quaternion_norm_squared(quaternion):
+@deprecated("This function is deprecated and will be removed in future versions.")
+def _quaternion_norm_squared(quaternion):
     r"""Computes norm of quaternion.
     The quaternion should be in (w, x, y, z) format.
 
