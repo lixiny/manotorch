@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 def _index_from_letter(letter: str) -> int:
