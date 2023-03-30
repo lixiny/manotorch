@@ -6,12 +6,12 @@ channels:
   - defaults
 
 dependencies:
-  - python=3.7.9
+  - python
   - pip
   - pytorch
   - torchvision
   - torchaudio
-  - cudatoolkit~=11.0
+  - cudatoolkit
   - matplotlib
   - numpy
   - scipy
@@ -19,9 +19,9 @@ dependencies:
   - tqdm
   - git
   - pip:
-      - git+https://github.com/hassony2/chumpy.git
+      - git+https://github.com/mattloper/chumpy.git
       - trimesh
       - pyrender
       - open3d
-      - opencv-python==4.3.0.36
-      - opencv-contrib-python~=4.3.0.36
+      - opencv-python
+      - opencv-contrib-python

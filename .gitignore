@@ -10,5 +10,6 @@ __pycache__/
 build/
 dist/
 assets/mano/
+assets/mano_v1_2/
 assets/mano_layer.svg
 manotorch.egg-info/
