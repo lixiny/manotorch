@@ -1,11 +1,13 @@
 from math import pi
 
 import numpy as np
-import torch
-from manotorch.manolayer import ManoLayer, MANOOutput
-from manotorch.axislayer import AxisAdaptiveLayer, AxisLayerFK
-from manotorch.utils.visutils import VizContext, create_coord_system_can
 import open3d as o3d
+import torch
+import tqdm
+
+from manotorch.axislayer import AxisAdaptiveLayer, AxisLayerFK
+from manotorch.manolayer import ManoLayer, MANOOutput
+from manotorch.utils.visutils import VizContext, create_coord_system_can
 
 
 def main():
@@ -27,42 +29,43 @@ def main():
 
     axisIK = AxisLayerFK(mano_assets_root="assets/mano")
 
+    # constructing the initial bending index fingers
+    global_aa = torch.zeros((1, 1, 3))
     composed_ee = torch.zeros((1, 16, 3))
-    composed_ee[:, 1] = torch.tensor([0, pi / 2, pi / 2]).unsqueeze(0)
-    composed_aa = axisIK.compose(composed_ee)  # (B, 16, 3)
+    composed_ee[:, 1] = torch.tensor([0, 0, pi / 2]).unsqueeze(0)
+    composed_ee[:, 2] = torch.tensor([0, 0, pi / 2]).unsqueeze(0)
+    composed_ee[:, 3] = torch.tensor([0, 0, pi / 2]).unsqueeze(0)
+    composed_aa = axisIK.compose(composed_ee)[:, 1:, :].clone()  # (B, 15, 3)
+    composed_aa.requires_grad_(True)
     zero_shape = torch.zeros((1, 10))
-    composed_mano = mano_layer(composed_aa.reshape(1, -1), zero_shape)
 
-    # new_aa_p1_p2.requires_grad_(True)
+    param = []
+    param.append({"params": [composed_aa]})
+    optimizer = torch.optim.Adam(param, lr=1e-3)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.5)
+    proc_bar = tqdm.tqdm(range(5000))
 
-    # param = []
-    # param.append({"params": [new_aa_p1_p2]})
-    # optimizer = torch.optim.Adam(param, lr=1e-3)
-    # scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=500, gamma=0.5)
+    for i, _ in enumerate(proc_bar):
 
-    for i, _ in enumerate(range(5000)):
-        # zero_pose = torch.cat((zero_pose3, opti_pose, zero_pose2), dim=1)
-        # zero_pose = torch.cat([zero_pose[:, :6], new_aa_p1_p2, zero_pose[:, 9:]], dim=1)
-        curr_pose = composed_aa.reshape(1, -1)
+        curr_pose = torch.cat([global_aa, composed_aa], dim=1).reshape(1, -1)
         mano_output: MANOOutput = mano_layer(curr_pose, zero_shape)
         hand_verts_curr = mano_output.verts
 
         T_g_p = mano_output.transforms_abs  # (B, 16, 4, 4)
-        ikres = axisIK(T_g_p)
-        T_g_a = ikres[0]
-        ee_tmpla2_a2 = ikres[2][:, 2]
+        T_g_a, R, ee = axisIK(T_g_p)
+        ee_tmplind_ind = ee[:, 1:4]  # (B, 3, 3)
 
-        # b_loss = torch.abs(ee_tmpla2_a2[:, 0]).mean()
-        # u_loss = torch.abs(ee_tmpla2_a2[:, 1]).mean()
-        # l_loss = torch.abs((ee_tmpla2_a2[:, 2])).mean()
+        b_loss = torch.abs(ee_tmplind_ind[:, :, 0]).mean()
+        u_loss = torch.abs(ee_tmplind_ind[:, :, 1]).mean()
+        l_loss = torch.abs(ee_tmplind_ind[:, :, 2]).mean()
 
-        # loss = b_loss + u_loss + l_loss
-        # proc_bar.set_description(f"b: {b_loss.item():.5f} | "
-        #                          f"u: {u_loss.item():.5f} | "
-        #                          f"l: {l_loss.item():.5f} | ")
-        # loss.backward()
-        # optimizer.step()
-        # scheduler.step()
+        loss = b_loss + u_loss + l_loss
+        proc_bar.set_description(f"b: {b_loss.item():.5f} | "
+                                 f"u: {u_loss.item():.5f} | "
+                                 f"l: {l_loss.item():.5f} | ")
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
 
         # ===== draw hand curr >>>>>
         if i % 10 == 0:
