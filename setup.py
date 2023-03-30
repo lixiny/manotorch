@@ -1,8 +1,19 @@
 from setuptools import find_packages, setup
 import warnings
 
-DEPENDENCY_PACKAGE_NAMES = ["matplotlib", "torch", "tqdm", "numpy", "cv2", "scipy",
-                            "chumpy", "trimesh", "pyrender", "lietorch"]
+DEPENDENCY_PACKAGE_NAMES = [
+    "matplotlib",
+    "torch",
+    "tqdm",
+    "numpy",
+    "cv2",
+    "scipy",
+    "chumpy",
+    "trimesh",
+    "pyrender",
+    "deprecation",
+    "open3d",
+]
 
 
 def check_dependencies():
@@ -14,11 +25,9 @@ def check_dependencies():
             missing_dependencies.append(package_name)
 
     if missing_dependencies:
-        warnings.warn(
-            'Missing dependencies: {}. We recommend you follow '
-            'the installation instructions at '
-            'https://github.com/lixiny/manotorch#installation'.format(
-                missing_dependencies))
+        warnings.warn('Missing dependencies: {}. We recommend you follow '
+                      'the installation instructions at '
+                      'https://github.com/lixiny/manotorch#installation'.format(missing_dependencies))
 
 
 # with open("README.md", "r") as fh:
