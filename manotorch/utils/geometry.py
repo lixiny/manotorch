@@ -253,7 +253,7 @@ def quaternion_to_matrix(quaternions: torch.Tensor) -> torch.Tensor:
 
 
 def rotation_to_axis_angle(rotation: torch.Tensor) -> torch.Tensor:
-    return matrix_to_quaternion(quaternion_to_axis_angle(rotation))
+    return quaternion_to_axis_angle(matrix_to_quaternion(rotation))
 
 
 def axis_angle_to_matrix(axis_angle: torch.Tensor) -> torch.Tensor:
