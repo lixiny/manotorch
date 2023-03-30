@@ -1,16 +1,14 @@
 import os
+import warnings
 from collections import namedtuple
 from typing import Optional
-import warnings
 
 import numpy as np
 import torch
 
-# import lietorch
-from .utils.rodrigues import rodrigues
-from .utils.quatutils import quaternion_to_rotation_matrix, quaternion_to_angle_axis
-
 from mano.webuser.smpl_handpca_wrapper_HAND_only import ready_arguments
+
+from .utils.geometry import (axis_angle_to_matrix, quaternion_to_axis_angle, quaternion_to_matrix)
 
 MANOOutput = namedtuple(
     "MANOOutput",
@@ -37,6 +35,7 @@ def th_with_zeros(tensor):
 
 
 class ManoLayer(torch.nn.Module):
+
     def __init__(
         self,
         rot_mode: str = "axisang",
@@ -57,7 +56,6 @@ class ManoLayer(torch.nn.Module):
         self.flat_hand_mean = flat_hand_mean
         self.ncomps = ncomps if use_pca else -1
 
-
         if rot_mode == "axisang":
             self.rot_dim = 3
         elif rot_mode == "quat":
@@ -69,7 +67,8 @@ class ManoLayer(torch.nn.Module):
 
         # load model according to side flag
         mano_assets_path = os.path.join(mano_assets_root, "models", f"MANO_{side.upper()}.pkl")  # eg.  MANO_RIGHT.pkl
-        assert os.path.isfile(mano_assets_path), "Can not find MANO assets, please follow steps in README.md"
+        assert os.path.isfile(
+            mano_assets_path), f"Can not find MANO assets {mano_assets_path}, please follow steps in README.md"
 
         # parse and register stuff
         smpl_data = ready_arguments(mano_assets_path)
@@ -100,8 +99,8 @@ class ManoLayer(torch.nn.Module):
 
     def rotation_by_axisang(self, pose_coeffs):
         batch_size = pose_coeffs.shape[0]
-        hand_pose_coeffs = pose_coeffs[:, self.rot_dim :]
-        root_pose_coeffs = pose_coeffs[:, : self.rot_dim]
+        hand_pose_coeffs = pose_coeffs[:, self.rot_dim:]
+        root_pose_coeffs = pose_coeffs[:, :self.rot_dim]
         if self.use_pca:
             full_hand_pose = hand_pose_coeffs.mm(self.th_selected_comps)
         else:
@@ -111,7 +110,7 @@ class ManoLayer(torch.nn.Module):
         full_poses = torch.cat([root_pose_coeffs, self.th_hands_mean + full_hand_pose], 1)
 
         pose_vec_reshaped = full_poses.contiguous().view(-1, 3)  # (B x N, 3)
-        rot_mats = rodrigues(pose_vec_reshaped)  # (B x N, 3, 3)
+        rot_mats = axis_angle_to_matrix(pose_vec_reshaped)  # (B x N, 3, 3)
         # rot_mats = lietorch.SO3.exp(pose_vec_reshaped).matrix()[..., :3, :3]  # (B x N, 3, 3)
         full_rots = rot_mats.view(batch_size, 16, 3, 3)
         rotation_blob = {"full_rots": full_rots, "full_poses": full_poses}
@@ -120,8 +119,8 @@ class ManoLayer(torch.nn.Module):
     def rotation_by_quaternion(self, pose_coeffs):
         batch_size = pose_coeffs.shape[0]
         full_quat_poses = pose_coeffs.view((batch_size, 16, 4))  # [B. 16, 4]
-        full_rots = quaternion_to_rotation_matrix(full_quat_poses)  # [B, 16, 3, 3]
-        full_poses = quaternion_to_angle_axis(full_quat_poses).reshape(batch_size, -1)  # [B, 16 x 3]
+        full_rots = quaternion_to_matrix(full_quat_poses)  # [B, 16, 3, 3]
+        full_poses = quaternion_to_axis_angle(full_quat_poses).reshape(batch_size, -1)  # [B, 16 x 3]
 
         rotation_blob = {"full_rots": full_rots, "full_poses": full_poses}
         return rotation_blob
@@ -209,8 +208,8 @@ class ManoLayer(torch.nn.Module):
         T = torch.matmul(G_prime_k, self.th_weights.transpose(0, 1))  # (B, 4, 4, 778)
 
         T_P_homo = torch.cat(
-            [T_P.transpose(2, 1), torch.ones((batch_size, 1, B_P.shape[1]), dtype=T.dtype, device=T.device)], dim=1
-        )
+            [T_P.transpose(2, 1),
+             torch.ones((batch_size, 1, B_P.shape[1]), dtype=T.dtype, device=T.device)], dim=1)
         T_P_homo = T_P_homo.unsqueeze(1)  # (B, 1, 4, 778)
 
         # Eq. 7 in SMPL
