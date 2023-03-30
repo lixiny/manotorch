@@ -106,7 +106,7 @@ class AxisLayerFK(Module):
         Ra_chd_tmplchd = torch.matmul(Ra_par_chd.transpose(2, 3), Ra_par_tmplchd)
         Ra_tmplchd_chd = Ra_chd_tmplchd.transpose(2, 3)
 
-        ee_a_tmplchd_chd = matrix_to_euler_angles(Ra_chd_tmplchd, convention="XYZ")  # (B, 16, 3)
+        ee_a_tmplchd_chd = matrix_to_euler_angles(Ra_tmplchd_chd, convention="XYZ")  # (B, 16, 3)
         return T_g_a, Ra_tmplchd_chd, ee_a_tmplchd_chd
 
     def compose(self, angles):
@@ -153,7 +153,6 @@ class AxisLayerFK(Module):
         R_g_p = torch.matmul(R_g_a, self.TMPL_R_p_a.transpose(2, 3))  # (B, 16, 3, 3)
 
         Rp_par_chd = torch.matmul(R_g_p[:, self.transf_parent_mapping].transpose(2, 3), R_g_p)  # (B, 16, 3, 3)
-        print(Rp_par_chd.shape)
         aa_p_par_chd = rotation_to_axis_angle(Rp_par_chd)  # (B, 16, 3)
         return aa_p_par_chd
 
