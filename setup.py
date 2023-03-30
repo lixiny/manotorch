@@ -28,7 +28,7 @@ check_dependencies()
 
 setup(
     name="manotorch",
-    version="0.0.1",
+    version="0.0.2",
     author="Lixin Yang",
     author_email="siriusyang@sjtu.edu.cn",
     packages=find_packages(exclude=('tests',)),
