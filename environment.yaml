@@ -25,3 +25,4 @@ dependencies:
       - open3d
       - opencv-python
       - opencv-contrib-python
+      - deprecation
