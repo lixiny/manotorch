@@ -157,8 +157,8 @@ class AxisLayerFK(Module):
         return aa_p_par_chd
 
 
-@deprecated(deprecated_in="0.1.0",
-            removed_in="0.2.0",
+@deprecated(deprecated_in="0.0.2",
+            removed_in="0.0.3",
             details="This class is deprecated. Please use the new class 'AxisLayerFK' instead.")
 class AxisLayer(Module):
 
