@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import deprecation
 
 
 class VizContext:
@@ -151,81 +152,9 @@ def create_coord_system_can(scale=1, transf=None):
     return axis_list
 
 
-def cam_equal_aspect_3d(ax, verts, flip_x=False):
-    """
-    Centers view on cuboid containing hand and flips y and z axis
-    and fixes azimuth
-    """
-    extents = np.stack([verts.min(0), verts.max(0)], axis=1)
-    sz = extents[:, 1] - extents[:, 0]
-    centers = np.mean(extents, axis=1)
-    maxsize = max(abs(sz))
-    r = maxsize / 2
-    if flip_x:
-        ax.set_xlim(centers[0] + r, centers[0] - r)
-    else:
-        ax.set_xlim(centers[0] - r, centers[0] + r)
-    # Invert y and z axis
-    ax.set_ylim(centers[1] + r, centers[1] - r)
-    ax.set_zlim(centers[2] + r, centers[2] - r)
-
-
-def display_hand_matplot(mano_blob, faces, ax=None, alpha=0.2, cam_view=False, batch_idx=0, show=True):
-    """
-    Displays hand batch_idx in batch of hand_info, hand_info as returned by
-    generate_random_hand
-    """
-    from matplotlib import pyplot as plt
-    from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-    if ax is None:
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-    verts, joints = mano_blob.verts[batch_idx], mano_blob.joints[batch_idx]
-
-    mesh = Poly3DCollection(verts[faces], alpha=alpha)
-    face_color = (141 / 255, 184 / 255, 226 / 255)
-    edge_color = (50 / 255, 50 / 255, 50 / 255)
-    mesh.set_edgecolor(edge_color)
-    mesh.set_facecolor(face_color)
-    ax.add_collection3d(mesh)
-
-    # region: joint color >>>>>>>
-    ax.scatter(joints[0, 0], joints[0, 1], joints[0, 2], s=42, color="c", marker="p")
-
-    ax.scatter(joints[1, 0], joints[1, 1], joints[1, 2], color="y", marker="s")
-    ax.scatter(joints[2, 0], joints[2, 1], joints[2, 2], color="y", marker="^")
-    ax.scatter(joints[3, 0], joints[3, 1], joints[3, 2], color="y", marker="o")
-    ax.scatter(joints[4, 0], joints[4, 1], joints[4, 2], color="y", marker="*")
-
-    ax.scatter(joints[5, 0], joints[5, 1], joints[5, 2], color="r", marker="s")
-    ax.scatter(joints[6, 0], joints[6, 1], joints[6, 2], color="r", marker="^")
-    ax.scatter(joints[7, 0], joints[7, 1], joints[7, 2], color="r", marker="o")
-    ax.scatter(joints[8, 0], joints[8, 1], joints[8, 2], color="r", marker="*")
-
-    ax.scatter(joints[9, 0], joints[9, 1], joints[9, 2], color="b", marker="s")
-    ax.scatter(joints[10, 0], joints[10, 1], joints[10, 2], color="b", marker="^")
-    ax.scatter(joints[11, 0], joints[11, 1], joints[11, 2], color="b", marker="o")
-    ax.scatter(joints[12, 0], joints[12, 1], joints[12, 2], color="b", marker="*")
-
-    ax.scatter(joints[13, 0], joints[13, 1], joints[13, 2], color="g", marker="s")
-    ax.scatter(joints[14, 0], joints[14, 1], joints[14, 2], color="g", marker="^")
-    ax.scatter(joints[15, 0], joints[15, 1], joints[15, 2], color="g", marker="o")
-    ax.scatter(joints[16, 0], joints[16, 1], joints[16, 2], color="g", marker="*")
-
-    ax.scatter(joints[17, 0], joints[17, 1], joints[17, 2], color="m", marker="s")
-    ax.scatter(joints[18, 0], joints[18, 1], joints[18, 2], color="m", marker="^")
-    ax.scatter(joints[19, 0], joints[19, 1], joints[19, 2], color="m", marker="o")
-    ax.scatter(joints[20, 0], joints[20, 1], joints[20, 2], color="m", marker="*")
-    # endregion <<<<<<<<<<
-
-    if cam_view:
-        ax.view_init(azim=-90.0, elev=-90.0)
-    cam_equal_aspect_3d(ax, verts.numpy())
-    if show:
-        plt.show()
-
-
+@deprecation.deprecated(deprecated_in="0.0.2",
+                        removed_in="0.0.3",
+                        details="this function is deprecated due to the modification on bul axes")
 def draw_axis(axis, transf, scene, color):
     import pyrender
     import trimesh
@@ -242,6 +171,9 @@ def draw_axis(axis, transf, scene, color):
     scene.add(cylinder)
 
 
+@deprecation.deprecated(deprecated_in="0.0.2",
+                        removed_in="0.0.3",
+                        details="this function is deprecated due to the modification on bul axes")
 def display_hand_pyrender(mano_blob, faces=None, batch_idx=0, show_axis=True, anchors=None, bul_axes=None):
     import pyrender
     import trimesh
@@ -311,32 +243,3 @@ def display_hand_pyrender(mano_blob, faces=None, batch_idx=0, show_axis=True, an
             scene.add(anchor_mesh)
 
     pyrender.Viewer(scene, viewport_size=(1280, 768), use_raymond_lighting=True)
-
-
-def display_hand_open3d(mano_blob, faces=None, batch_idx=0):
-    import open3d as o3d
-    geometry = o3d.geometry.TriangleMesh()
-    geometry.triangles = o3d.utility.Vector3iVector(faces)
-    verts, joints = mano_blob.verts[batch_idx], mano_blob.joints[batch_idx]
-
-    geometry.vertices = o3d.utility.Vector3dVector(verts.detach().cpu().numpy())
-    geometry.compute_vertex_normals()
-    vis = o3d.visualization.VisualizerWithKeyCallback()
-
-    vis.create_window(
-        window_name="display",
-        width=1024,
-        height=768,
-    )
-    vis.add_geometry(geometry)
-
-    def kill(vis):
-        exit(0)
-
-    vis.register_key_callback(ord("Q"), kill)
-
-    while True:
-        geometry.compute_vertex_normals()
-        vis.update_geometry(geometry)
-        vis.update_renderer()
-        vis.poll_events()
