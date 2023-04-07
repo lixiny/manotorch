@@ -3,7 +3,7 @@ import argparse
 from manotorch.manolayer import ManoLayer, MANOOutput
 from manotorch.axislayer import AxisLayer
 from manotorch.anchorlayer import AnchorLayer
-from manotorch.utils.visutils import display_hand_matplot, display_hand_pyrender, display_hand_open3d
+from manotorch.utils.visutils import display_hand_pyrender
 
 
 def main(args):
@@ -35,18 +35,10 @@ def main(args):
     anchors = anchor_layer(verts)
     bul_axes = axis_layer(joints, transforms_abs)
 
-    if args.display == "pyrender":
-        display_hand_pyrender(mano_results, mano_layer.th_faces, bul_axes=bul_axes, anchors=anchors)
-    elif args.display == "open3d":
-        display_hand_open3d(mano_results, mano_layer.th_faces)
-    elif args.display == "matplot":
-        display_hand_matplot(mano_results, mano_layer.th_faces)
-    else:
-        print("Unknown display")
+    display_hand_pyrender(mano_results, mano_layer.th_faces, bul_axes=bul_axes, anchors=anchors)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--flat_hand_mean", action="store_true", help="Use flat hand as mean")
-    parser.add_argument("--display", choices=["matplot", "pyrender", "open3d"], default="pyrender", type=str)
     main(parser.parse_args())
