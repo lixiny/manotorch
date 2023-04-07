@@ -20,13 +20,13 @@ def anchor_load(anchor_root):
     """
     # face vert idx
     face_vert_idx_path = os.path.join(anchor_root, "face_vertex_idx.txt")
-    face_vert_idx = np.loadtxt(face_vert_idx_path, dtype=np.int)
+    face_vert_idx = np.loadtxt(face_vert_idx_path, dtype=int)
     # anchor weight
     anchor_weight_path = os.path.join(anchor_root, "anchor_weight.txt")
     anchor_weight = np.loadtxt(anchor_weight_path)
     # vertex assignment
     vertex_assigned_path = os.path.join(anchor_root, "merged_vertex_assignment.txt")
-    merged_vertex_assignment = np.loadtxt(vertex_assigned_path, dtype=np.int)
+    merged_vertex_assignment = np.loadtxt(vertex_assigned_path, dtype=int)
     # load the anchor mapping
     anchor_mapping_path = os.path.join(anchor_root, "anchor_mapping_path.pkl")
     with open(anchor_mapping_path, "rb") as fstream:
@@ -79,7 +79,7 @@ def get_region_size(vertex_assignment, n_region=None):
         n_region = len(np.unique(vertex_assignment))
     res = np.zeros((n_region,))
     for region_id in range(n_region):
-        res[region_id] = np.sum((vertex_assignment == region_id).astype(np.int))
+        res[region_id] = np.sum((vertex_assignment == region_id).astype(int))
     return res
 
 
@@ -91,7 +91,7 @@ def get_region_size_masked_by_palm(vertex_assignment, hand_palm_vert_idx, n_regi
     selected_vertices_assignment = vertex_assignment[hand_palm_vert_idx]
     res = np.zeros((n_region,))
     for region_id in range(n_region):
-        res[region_id] = np.sum((selected_vertices_assignment == region_id).astype(np.int))
+        res[region_id] = np.sum((selected_vertices_assignment == region_id).astype(int))
     return res
 
 
@@ -104,8 +104,9 @@ def get_rev_anchor_mapping(anchor_mapping, n_region=None):
         res[region_id].append(anchor_id)
     return res
 
+
 def get_mask_from_index(mask: np.ndarray, total: int):
-    res = np.zeros((total,), dtype=np.int)
+    res = np.zeros((total,), dtype=int)
     res[mask] = 1
     return res
 
@@ -121,7 +122,7 @@ def get_region_palm_mask(n_region: int, palm, vertex_assignment_merged: np.ndarr
 
 def masking_load_driver(anchor_path, palm_vert_idx_path):
     _, _, vertex_assignment_merged, _ = anchor_load(anchor_path)
-    hand_palm_vert_idx = np.loadtxt(palm_vert_idx_path, dtype=np.int)
+    hand_palm_vert_idx = np.loadtxt(palm_vert_idx_path, dtype=int)
     n_vert = vertex_assignment_merged.shape[0]
     hand_palm_vert_mask = get_mask_from_index(hand_palm_vert_idx, n_vert)
     return vertex_assignment_merged, hand_palm_vert_mask
@@ -135,6 +136,7 @@ def test():
         except AttributeError:
             print(x)
     print(get_rev_anchor_mapping(res[3]))
+
 
 # testing
 if __name__ == "__main__":
