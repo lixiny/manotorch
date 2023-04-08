@@ -24,7 +24,7 @@ anatomy. Therefore we can decompose the joint rotation w.r.t. this basis and pen
 pose on that joint.
 
 <p align="center">
-    <img src="doc/anatomical_consistent_basis.jpg", height=200>
+    <img src="doc/anatomical_consistent_basis.jpg", alt="capture">
 </p>
 
 ### Anatomy Loss
@@ -53,7 +53,7 @@ python scripts/simple_app.py --mode axis
 ```
 
 <p align="center">
-    <img src="doc/axis.gif", height=300>
+    <img src="doc/axis.gif", width=400>
 </p>
 
 To overcome the second issue,
@@ -89,7 +89,7 @@ python scripts/simple_compose.py
 ```
 
 <p align="center">
-    <img src="doc/simple_compose.gif", height=300>
+    <img src="doc/simple_compose.gif", width=400>
 </p>
 
 ### Anchor Interpolation
@@ -105,7 +105,7 @@ python scripts/simple_app.py --mode anchor
 
 <p align="center">
     <img src="doc/anchor.jpg", height=300>
-    <img src="doc/anchor.gif", height=300>
+    <img src="doc/anchor.gif", width=400>
 </p>
 
 :thumbsup: If you find the manotorch useful in your research,
