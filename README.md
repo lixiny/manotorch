@@ -40,11 +40,6 @@ To overcome this, in the new manotorch,
 we firstly use the **unposed** hand to calculate the twist-spread-bend axes in its canonical pose.
 Later, we can transform these basis to the **posed** hand, based on the 16 $\mathbf{SE}(3)$ transformation matrices.
 
-To overcome the first issue,
-For each joint rotation, we decomposed it as two rotations, one is the rotation from the original MANO basis to our newly defined anatomical consistent basis (this rotation is calculated in MANO's canonical pose and is independent to the pose of the hand),
-and the other is the rotation from the **unposed** anatomical consistent basis to that of the **posed** hand.
-Therefore, we only need to penalize the latter rotation, which is more reliable.
-
 :eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).  
 :runner: Run: [scripts/simple_app.py](scripts/simple_app.py)
 
@@ -55,6 +50,12 @@ python scripts/simple_app.py --mode axis
 <p align="center">
     <img src="doc/axis.gif", width=400>
 </p>
+
+
+To overcome the first issue,
+For each joint rotation, we decomposed it as two rotations, one is the rotation from the original MANO basis to our newly defined anatomical consistent basis (this rotation is calculated in MANO's canonical pose and is independent to the pose of the hand),
+and the other is the rotation from the **unposed** anatomical consistent basis to that of the **posed** hand.
+Therefore, we only need to penalize the latter rotation, which is more reliable.
 
 To overcome the second issue,
 we penalize the rotation in form of the euler angles, which is more robust to the small angle.
@@ -204,8 +205,6 @@ ncomps = 15
 
 # initialize layers
 mano_layer = ManoLayer(use_pca=True, flat_hand_mean=False, ncomps=ncomps)
-axis_layer = AxisLayer()
-anchor_layer = AnchorLayer()
 
 batch_size = 2
 # Generate random shape parameters
@@ -213,7 +212,7 @@ random_shape = torch.rand(batch_size, 10)
 # Generate random pose parameters, including 3 values for global axis-angle rotation
 random_pose = torch.rand(batch_size, 3 + ncomps)
 
-
+# The mano_layer's output contains: 
 """
 MANOOutput = namedtuple(
     "MANOOutput",
@@ -232,7 +231,8 @@ MANOOutput = namedtuple(
 mano_output: MANOOutput = mano_layer(random_pose, random_shape)
 
 # retrieve 778 vertices, 21 joints and 16 SE3 transforms of each articulation
-verts = mano_output.verts
-joints = mano_output.joints
-transforms_abs = mano_output.transforms_abs
-```
+verts = mano_output.verts  # (B, 778, 3), root(center_joint) relative
+joints = mano_output.joints  # (B, 21, 3), root relative
+transforms_abs = mano_output.transforms_abs  # (B, 16, 4, 4), root relative
+``` 
+For advance usages, please visit [scripts](./scripts/) for demonstrations.
