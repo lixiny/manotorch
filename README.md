@@ -115,9 +115,9 @@ where the manotorch is originally developed:
 ```
 @inproceedings{yang2021cpf,
     title = {{CPF}: Learning a Contact Potential Field to Model the Hand-Object Interaction},
-	author = {Yang, Lixin and Zhan, Xinyu and Li, Kailin and Xu, Wenqiang and Li, Jiefeng and Lu, Cewu},
-	booktitle = {ICCV},
-	year = {2021}
+    author = {Yang, Lixin and Zhan, Xinyu and Li, Kailin and Xu, Wenqiang and Li, Jiefeng and Lu, Cewu},
+    booktitle = {ICCV},
+    year = {2021}
 }
 ```
 
