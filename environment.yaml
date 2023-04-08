@@ -12,16 +12,16 @@ dependencies:
   - torchvision
   - torchaudio
   - cudatoolkit
-  - matplotlib
   - numpy
-  - scipy
   - pyyaml
   - tqdm
   - git
   - pip:
       - git+https://github.com/mattloper/chumpy.git
+      - cython
+      - scipy
       - trimesh
-      - pyrender
+      - pyvista
       - open3d
       - opencv-python
       - opencv-contrib-python

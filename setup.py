@@ -10,7 +10,7 @@ DEPENDENCY_PACKAGE_NAMES = [
     "scipy",
     "chumpy",
     "trimesh",
-    "pyrender",
+    "pyvista"
     "deprecation",
     "open3d",
 ]
