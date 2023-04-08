@@ -29,7 +29,7 @@ pose on that joint.
 
 ### Anatomy Loss
 
-In our ICCV2021 work [CPF](), we penalize the abnormal poses by projecting the rotation axis of _axis-angle_ into three independent axes, and then penalize the abnormal axial components on that joint.
+In our ICCV2021 work [CPF](https://lixiny.github.io/CPF/), we penalize the abnormal poses by projecting the rotation axis of _axis-angle_ into three independent axes, and then penalize the abnormal axial components on that joint.
 This is a effective heuristic to avoid the abnormal pose, but it is still not a perfect solution, since:
 
 - First, the twist-spread-bend axes are calculated from the **posed** hand (vs unposed hand in its canonical pose).
