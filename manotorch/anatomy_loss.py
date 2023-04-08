@@ -4,10 +4,11 @@ import torch.nn as nn
 
 class AnatomyConstraintLossEE(nn.Module):
 
-    def __init__(self) -> None:
+    def __init__(self, reduction: str = "mean") -> None:
         super().__init__()
         self._setup = False
         self._eps = 1e-6
+        self.reduction = reduction
 
     def setup(
         self,
@@ -138,4 +139,11 @@ class AnatomyConstraintLossEE(nn.Module):
             loss_thumb_pip,
         ],
                              dim=1)  # (B, 15)
-        return loss_all.mean()
+        if self.reduction == "none":
+            return loss_all
+        elif self.reduction == "mean":
+            return loss_all.mean()
+        elif self.reduction == "sum":
+            return loss_all.sum()
+        else:
+            raise ValueError("Unknown reduction type.")
