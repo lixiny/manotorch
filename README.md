@@ -34,7 +34,7 @@ This is a effective heuristic to avoid the abnormal pose, but it is still not a 
 
 - First, the twist-spread-bend axes are calculated from the **posed** hand (vs unposed hand in its canonical pose).
   In this case, if the hand already has a largely abnormal pose, these three axes will be abnormal as well, resulting the anatomical loss in a meaningless way.
-- Second, when the scalar angle of _axis-angle_ is close to zero, the axis is not reliable to describe the rotation.
+- Second, when the scalar angle of _axis-angle_ is close to zero, the rotation axis is not reliable to describe the rotation.
 
 To overcome this, in the new manotorch,
 we firstly use the **unposed** hand to calculate the twist-spread-bend axes in its canonical pose.
@@ -71,7 +71,7 @@ python scripts/simple_anatomy_loss.py
 
 Based on the Anatomical Consistent Basis, we can also compose the hand from a given euler angles.
 
-:eyes: See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: inverse kinematics).  
+:eyes: See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: forward kinematics).  
 :runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It demonstrates how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
 
 ```shell
