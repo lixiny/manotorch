@@ -72,7 +72,7 @@ python scripts/simple_anatomy_loss.py
 Based on the Anatomical Consistent Basis, we can also compose the hand from a given euler angles.
 
 :eyes: See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: inverse kinematics).  
-:runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It demonstrates how we specify the euler angles of joint on the index fingers and compose the hand in a deterministic way.
+:runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It demonstrates how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
 
 ```shell
 #   transform order of right hand
