@@ -51,7 +51,6 @@ python scripts/simple_app.py --mode axis
     <img src="doc/axis.gif", width=400>
 </p>
 
-
 To overcome the first issue,
 For each joint rotation, we decomposed it as two rotations, one is the rotation from the original MANO basis to our newly defined anatomical consistent basis (this rotation is calculated in MANO's canonical pose and is independent to the pose of the hand),
 and the other is the rotation from the **unposed** anatomical consistent basis to that of the **posed** hand.
@@ -61,18 +60,22 @@ To overcome the second issue,
 we penalize the rotation in form of the euler angles, which is more robust to the small angle.
 
 :eyes: See [manotorch/anatomy_loss.py](manotorch/anatomy_loss.py): `AnatomyConstraintLossEE` for details (EE: euler angle).  
-:runner: Run: [scripts/simple_anatomy_loss.py](scripts/simple_anatomy_loss.py)
+:runner: Run: [scripts/simple_anatomy_loss.py](scripts/simple_anatomy_loss.py) to show the pose correction.
 
 ```shell
 python scripts/simple_anatomy_loss.py
 ```
+
+<p align="center">
+    <img src="doc/pose_correction.gif", width=400>
+</p>
 
 ### Composing the Hand
 
 Based on the Anatomical Consistent Basis, we can also compose the hand from a given euler angles.
 
 :eyes: See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: forward kinematics).  
-:runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It demonstrates how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
+:runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It shows how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
 
 ```shell
 #   transform order of right hand
@@ -212,7 +215,7 @@ random_shape = torch.rand(batch_size, 10)
 # Generate random pose parameters, including 3 values for global axis-angle rotation
 random_pose = torch.rand(batch_size, 3 + ncomps)
 
-# The mano_layer's output contains: 
+# The mano_layer's output contains:
 """
 MANOOutput = namedtuple(
     "MANOOutput",
@@ -234,5 +237,10 @@ mano_output: MANOOutput = mano_layer(random_pose, random_shape)
 verts = mano_output.verts  # (B, 778, 3), root(center_joint) relative
 joints = mano_output.joints  # (B, 21, 3), root relative
 transforms_abs = mano_output.transforms_abs  # (B, 16, 4, 4), root relative
-``` 
-For advance usages, please visit [scripts](./scripts/) for demonstrations.
+```
+
+### Advanced Usage
+
+| [Visualize](scripts/simple_app.py) | [Simple Compose](scripts/simple_compose.py) | [Error Correction](scripts/simple_anatomy_loss.py) |
+| :--------------------------------: | :-----------------------------------------: | :------------------------------------------------: |
+|         ![](doc/axis.gif)          |         ![](doc/simple_compose.gif)         |            ![](doc/pose_correction.gif)            |

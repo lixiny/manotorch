@@ -9,6 +9,7 @@
 __pycache__/
 build/
 dist/
+test/
 assets/mano/
 assets/mano_v1_2/
 assets/mano_layer.svg

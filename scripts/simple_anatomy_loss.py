@@ -44,7 +44,7 @@ def main():
     #   12 - 11 - 10 --/
     #    9-- 8 -- 7 --/
     composed_ee[:, 1] = torch.tensor([0, 0, -pi / 3]).unsqueeze(0)
-    composed_ee[:, 2] = torch.tensor([0, 0, -pi / 3]).unsqueeze(0)
+    composed_ee[:, 2] = torch.tensor([pi / 3, 0, -pi / 3]).unsqueeze(0)
     composed_ee[:, 3] = torch.tensor([0, pi / 3, -pi / 3]).unsqueeze(0)
     composed_aa = axisFK.compose(composed_ee)[:, 1:, :].clone()  # (B, 15, 3)
     composed_aa.requires_grad_(True)
