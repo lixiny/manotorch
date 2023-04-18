@@ -142,7 +142,7 @@ class AxisLayerFK(Module):
         lev2_rots = Ra_par_chd[:, [idx for idx in lev2_idxs]]  # (B, 5, 3, 3)
         lev3_rots = Ra_par_chd[:, [idx for idx in lev3_idxs]]  # (B, 5, 3, 3)
 
-        lev1_rot_chains = torch.matmul(Ra_par_chd[:, 0].repeat(1, 5, 1, 1), lev1_rots)  # (B, 5, 3, 3)
+        lev1_rot_chains = torch.matmul(Ra_par_chd[:, 0:1].repeat(1, 5, 1, 1), lev1_rots)  # (B, 5, 3, 3)
         all_rot_chains.append(lev1_rot_chains)
         lev2_rot_chains = torch.matmul(lev1_rot_chains, lev2_rots)  # (B, 5, 3, 3)
         all_rot_chains.append(lev2_rot_chains)
