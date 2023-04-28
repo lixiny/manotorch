@@ -52,9 +52,12 @@ python scripts/simple_app.py --mode axis
 </p>
 
 To overcome the first issue,
-For each joint rotation, we decomposed it as two rotations, one is the rotation from the original MANO basis to our newly defined anatomical consistent basis (this rotation is calculated in MANO's canonical pose and is independent to the pose of the hand),
-and the other is the rotation from the **unposed** anatomical consistent basis to that of the **posed** hand.
-Therefore, we only need to penalize the latter rotation, which is more reliable.
+For each joint rotation,
+we decompose it in any pose into the rotations of the child frame in relation to the child's anatomical consistent basis
+and the rotation of the the child's anatomical consistent basis in relation to the parent's predefined (MANO) coordinate basis.
+The latter rotation is independent of the pose of hand and is thus solved only once, for the zero pose and mean shape, it can then be used as a fixed value (denoted as `TMPL_R_p_a` in the AxisLayerFK module).
+Therefore, we only need to penalize the former rotation, which is more reliable. 
+e.g supervise the rotation of the child frame in relation to the child's anatomical consistent basis to prevent abnormal twisting rotations (e.g., rotations around the `twist` (1,0,0) axis).
 
 To overcome the second issue,
 we penalize the rotation in form of the euler angles, which is more robust to the small angle.
