@@ -7,9 +7,9 @@ It can be integrated into any architecture as a differentiable layer to predict 
 
 ## :spiral_notepad: Introduction
 
-This MANO layer is modified from the original [manopth](https://github.com/hassony2/manopth).  
-It is compatible with Yana's [manopth](https://github.com/hassony2/manopth) and Omid's [MANO](https://github.com/otaheri/MANO).  
-It has the following features:
+:mega: **This MANO layer is compatible with Yana's [manopth](https://github.com/hassony2/manopth) and Omid's [MANO](https://github.com/otaheri/MANO).** See example: [test_compatibility](scripts/test_compatibility.ipynb).
+
+It is modified from the original [manopth](https://github.com/hassony2/manopth) with the following new features:
 
 ### Anatomical Consistent Basis
 
@@ -40,7 +40,7 @@ To overcome this, in the new manotorch,
 we firstly use the **unposed** hand to calculate the twist-spread-bend axes in its canonical pose.
 Later, we can transform these basis to the **posed** hand, based on the 16 $\mathbf{SE}(3)$ transformation matrices.
 
-:eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).  
+:eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).
 :runner: Run: [scripts/simple_app.py](scripts/simple_app.py)
 
 ```shell
@@ -56,7 +56,7 @@ For each joint rotation,
 we decompose it in any pose into the rotations of the child frame in relation to the child's anatomical consistent basis
 and the rotation of the the child's anatomical consistent basis in relation to the parent's predefined (MANO) coordinate basis.
 The latter rotation is independent of the pose of hand and is thus solved only once, for the zero pose and mean shape, it can then be used as a fixed value (denoted as `TMPL_R_p_a` in the AxisLayerFK module).
-Therefore, we only need to penalize the former rotation, which is more reliable. 
+Therefore, we only need to penalize the former rotation, which is more reliable.
 e.g supervise the rotation of the child frame in relation to the child's anatomical consistent basis to prevent abnormal twisting rotations (e.g., rotations around the `twist` (1,0,0) axis).
 
 To overcome the second issue,
