@@ -1,15 +1,128 @@
 # manotorch: MANO Pytorch
 
-**manotorch** is a differentiable PyTorch layer that deterministically maps from pose and shape parameters to hand joints and vertices.
-It can be integrated into any architecture as a differentiable layer to predict hand mesh.
+<!-- ## :spiral_notepad: Introduction -->
 
----
+- manotorch is a differentiable PyTorch layer that deterministically maps from pose and shape parameters to hand joints and vertices. It can be integrated into any architecture as a differentiable layer to predict hand mesh.
 
-## :spiral_notepad: Introduction
+- manotorch is compatible with Yana's [manopth](https://github.com/hassony2/manopth) package and Omid's [MANO](https://github.com/otaheri/MANO) package, allowing for interchangeability between them. See example: [test_compatibility](scripts/test_compatibility.ipynb).
 
-:mega: **This MANO layer is compatible with Yana's [manopth](https://github.com/hassony2/manopth) and Omid's [MANO](https://github.com/otaheri/MANO).** See example: [test_compatibility](scripts/test_compatibility.ipynb).
+- manotorch is modified from the original [manopth](https://github.com/hassony2/manopth) with the following new features:
+  - [Anatomical Consistent Basis](#anatomical-consistent-basis)
+  - [Anatomy Loss](#anatomy-loss)
+  - [Composing the Hand](#composing-the-hand)
+  - [Anchor Interpolation](#anchor-interpolation)
 
-It is modified from the original [manopth](https://github.com/hassony2/manopth) with the following new features:
+<br />
+<br />
+
+## :rocket: Installation
+
+### Get code and dependencies
+
+```shell
+$ git clone https://github.com/lixiny/manotorch.git
+$ cd manotorch
+```
+
+Install the dependencies listed in [environment.yaml](environment.yaml)
+
+```shell
+# In a new environment,
+$ conda env create -f environment.yaml
+
+# Or in an existing conda environment,
+$ conda env update -f environment.yaml
+```
+
+### Download MANO pickle data-structures
+
+- Visit [MANO website](http://mano.is.tue.mpg.de/)
+- Create an account by clicking _Sign Up_ and provide your information
+- Download Models and Code (the downloaded file should have the format `mano_v*_*.zip`). Note that all code and data from this download falls under the [MANO license](http://mano.is.tue.mpg.de/license).
+- unzip and copy the contents in `mano_v*_*/` folder to the `assets/mano/` folder
+- Your `assets/mano` folder structure should look like this:
+
+```
+assets/mano
+    ├── info.txt
+    ├── __init__.py
+    ├── LICENSE.txt
+    ├── models
+    │   ├── info.txt
+    │   ├── LICENSE.txt
+    │   ├── MANO_LEFT.pkl
+    │   ├── MANO_RIGHT.pkl
+    │   ├── SMPLH_female.pkl
+    │   └── SMPLH_male.pkl
+    └── webuser
+        └── ...
+```
+
+### Optional: Install manotorch package
+
+To be able to import and use manotorch in another project, go to your `manotorch` folder and run
+
+```
+$ pip install .
+```
+
+<br />
+<br />
+
+## :plate_with_cutlery: Usage
+
+we provide a simple code snippet to demonstrate the minimal usage.
+
+```python
+import torch
+from manotorch.manolayer import ManoLayer, MANOOutput
+
+# Select number of principal components for pose space
+ncomps = 15
+
+# initialize layers
+mano_layer = ManoLayer(use_pca=True, flat_hand_mean=False, ncomps=ncomps)
+
+batch_size = 2
+# Generate random shape parameters
+random_shape = torch.rand(batch_size, 10)
+# Generate random pose parameters, including 3 values for global axis-angle rotation
+random_pose = torch.rand(batch_size, 3 + ncomps)
+
+# The mano_layer's output contains:
+"""
+MANOOutput = namedtuple(
+    "MANOOutput",
+    [
+        "verts",
+        "joints",
+        "center_idx",
+        "center_joint",
+        "full_poses",
+        "betas",
+        "transforms_abs",
+    ],
+)
+"""
+# forward mano layer
+mano_output: MANOOutput = mano_layer(random_pose, random_shape)
+
+# retrieve 778 vertices, 21 joints and 16 SE3 transforms of each articulation
+verts = mano_output.verts  # (B, 778, 3), root(center_joint) relative
+joints = mano_output.joints  # (B, 21, 3), root relative
+transforms_abs = mano_output.transforms_abs  # (B, 16, 4, 4), root relative
+```
+
+### Advanced Usage
+
+| [Visualize](scripts/simple_app.py) | [Compose Hand](scripts/simple_compose.py) | [Error Correction](scripts/simple_anatomy_loss.py) |
+| :--------------------------------: | :---------------------------------------: | :------------------------------------------------: |
+|         ![](doc/axis.gif)          |        ![](doc/simple_compose.gif)        |            ![](doc/pose_correction.gif)            |
+
+<br />
+<br />
+
+## :gift: New Features
 
 ### Anatomical Consistent Basis
 
@@ -36,11 +149,11 @@ This is a effective heuristic to avoid the abnormal pose, but it is still not a 
   In this case, if the hand already has a largely abnormal pose, these three axes will be abnormal as well, resulting the anatomical loss in a meaningless way.
 - Second, when the scalar angle of _axis-angle_ is close to zero, the rotation axis is not reliable to describe the rotation.
 
-To overcome this, in the new manotorch,
-we firstly use the **unposed** hand to calculate the twist-spread-bend axes in its canonical pose.
+To overcome this, in the new manotorch (>= v0.0.2),
+we firstly use the **flat** hand to calculate the twist-spread-bend axes in its canonical pose.
 Later, we can transform these basis to the **posed** hand, based on the 16 $\mathbf{SE}(3)$ transformation matrices.
 
-:eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).
+:eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).  
 :runner: Run: [scripts/simple_app.py](scripts/simple_app.py)
 
 ```shell
@@ -115,7 +228,12 @@ python scripts/simple_app.py --mode anchor
     <img src="doc/anchor.gif", width=400>
 </p>
 
-:thumbsup: If you find the manotorch useful in your research,
+<br />
+<br />
+
+## :thumbsup: Citation
+
+If you find the manotorch useful in your research,
 please consider citing CPF,
 where the manotorch is originally developed:
 
@@ -144,106 +262,3 @@ and the original MANO publication:
 }
 
 ```
-
----
-
-## :rocket: Installation
-
-### Get code and dependencies
-
-```shell
-$ git clone https://github.com/lixiny/manotorch.git
-$ cd manotorch
-```
-
-Install the dependencies listed in [environment.yaml](environment.yaml)
-
-```shell
-# In a new environment,
-$ conda env create -f environment.yaml
-
-# Or in an existing conda environment,
-$ conda env update -f environment.yaml
-```
-
-### Download MANO pickle data-structures
-
-- Visit [MANO website](http://mano.is.tue.mpg.de/)
-- Create an account by clicking _Sign Up_ and provide your information
-- Download Models and Code (the downloaded file should have the format `mano_v*_*.zip`). Note that all code and data from this download falls under the [MANO license](http://mano.is.tue.mpg.de/license).
-- unzip and copy the contents in `mano_v*_*/` folder to the `assets/mano/` folder
-- Your `assets/mano` folder structure should look like this:
-
-```
-assets/mano
-    ├── info.txt
-    ├── __init__.py
-    ├── LICENSE.txt
-    ├── models
-    │   ├── info.txt
-    │   ├── LICENSE.txt
-    │   ├── MANO_LEFT.pkl
-    │   ├── MANO_RIGHT.pkl
-    │   ├── SMPLH_female.pkl
-    │   └── SMPLH_male.pkl
-    └── webuser
-        └── ...
-```
-
-### Optional: Install manotorch package
-
-To be able to import and use manotorch in another project, go to your `manotorch` folder and run
-
-```
-$ pip install .
-```
-
-## :plate_with_cutlery: Usage
-
-we provide a simple code snippet to demonstrate the minimal usage.
-
-```python
-import torch
-from manotorch.manolayer import ManoLayer, MANOOutput
-
-# Select number of principal components for pose space
-ncomps = 15
-
-# initialize layers
-mano_layer = ManoLayer(use_pca=True, flat_hand_mean=False, ncomps=ncomps)
-
-batch_size = 2
-# Generate random shape parameters
-random_shape = torch.rand(batch_size, 10)
-# Generate random pose parameters, including 3 values for global axis-angle rotation
-random_pose = torch.rand(batch_size, 3 + ncomps)
-
-# The mano_layer's output contains:
-"""
-MANOOutput = namedtuple(
-    "MANOOutput",
-    [
-        "verts",
-        "joints",
-        "center_idx",
-        "center_joint",
-        "full_poses",
-        "betas",
-        "transforms_abs",
-    ],
-)
-"""
-# forward mano layer
-mano_output: MANOOutput = mano_layer(random_pose, random_shape)
-
-# retrieve 778 vertices, 21 joints and 16 SE3 transforms of each articulation
-verts = mano_output.verts  # (B, 778, 3), root(center_joint) relative
-joints = mano_output.joints  # (B, 21, 3), root relative
-transforms_abs = mano_output.transforms_abs  # (B, 16, 4, 4), root relative
-```
-
-### Advanced Usage
-
-| [Visualize](scripts/simple_app.py) | [Simple Compose](scripts/simple_compose.py) | [Error Correction](scripts/simple_anatomy_loss.py) |
-| :--------------------------------: | :-----------------------------------------: | :------------------------------------------------: |
-|         ![](doc/axis.gif)          |         ![](doc/simple_compose.gif)         |            ![](doc/pose_correction.gif)            |
