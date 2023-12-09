@@ -153,8 +153,8 @@ To overcome this, in the new manotorch (>= v0.0.2),
 we firstly use the **flat** hand to calculate the twist-spread-bend axes in its canonical pose.
 Later, we can transform these basis to the **posed** hand, based on the 16 $\mathbf{SE}(3)$ transformation matrices.
 
-:eyes: See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).  
-:runner: Run: [scripts/simple_app.py](scripts/simple_app.py)
+See [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK` for details (FK: forward kinematics).  
+Run: [scripts/simple_app.py](scripts/simple_app.py)
 
 ```shell
 python scripts/simple_app.py --mode axis
@@ -175,8 +175,8 @@ e.g supervise the rotation of the child frame in relation to the child's anatomi
 To overcome the second issue,
 we penalize the rotation in form of the euler angles, which is more robust to the small angle.
 
-:eyes: See [manotorch/anatomy_loss.py](manotorch/anatomy_loss.py): `AnatomyConstraintLossEE` for details (EE: euler angle).  
-:runner: Run: [scripts/simple_anatomy_loss.py](scripts/simple_anatomy_loss.py) to show the pose correction.
+See [manotorch/anatomy_loss.py](manotorch/anatomy_loss.py): `AnatomyConstraintLossEE` for details (EE: euler angle).  
+Run: [scripts/simple_anatomy_loss.py](scripts/simple_anatomy_loss.py) to show the pose correction.
 
 ```shell
 python scripts/simple_anatomy_loss.py
@@ -190,8 +190,8 @@ python scripts/simple_anatomy_loss.py
 
 Based on the Anatomical Consistent Basis, we can also compose the hand from a given euler angles.
 
-:eyes: See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: forward kinematics).  
-:runner: Run: [scripts/simple_compose.py](scripts/simple_compose.py), It shows how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
+See: [manotorch/axislayer.py](manotorch/axislayer.py): `AxisLayerFK.compose` for details (FK: forward kinematics).  
+Run: [scripts/simple_compose.py](scripts/simple_compose.py), It shows how we specify the euler angles of joint on the index finger and compose the hand in a deterministic way.
 
 ```shell
 #   transform order of right hand
@@ -216,8 +216,8 @@ python scripts/simple_compose.py
 
 These anchors derive a coarse palm vertices representation to treat contact during hand-object interaction.
 
-:eyes: See [manotorch/anchorlayer.py](manotorch/anchorlayer.py): `AnchorLayer` for details.  
-:runner: Run: [scripts/simple_app.py](scripts/simple_app.py)
+See [manotorch/anchorlayer.py](manotorch/anchorlayer.py): `AnchorLayer` for details.  
+Run: [scripts/simple_app.py](scripts/simple_app.py)
 
 ```shell
 python scripts/simple_app.py --mode anchor
