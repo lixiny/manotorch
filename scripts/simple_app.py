@@ -19,7 +19,7 @@ def main(args):
         mano_assets_root="assets/mano",
         flat_hand_mean=False,
     )
-    axis_layer = AxisLayerFK(mano_assets_root="assets/mano")
+    axis_layer = AxisLayerFK(side=mano_layer.side, mano_assets_root="assets/mano")
     anchor_layer = AnchorLayer(anchor_root="assets/anchor")
 
     BS = 1
@@ -42,7 +42,7 @@ def main(args):
     bul_axes_loc = torch.eye(3).reshape(1, 1, 3, 3).repeat(BS, 16, 1, 1).to(verts.device)
     bul_axes_glb = torch.matmul(T_g_a[:, :, :3, :3], bul_axes_loc)  # (B, 16, 3, 3)
 
-    b_axes_dir = bul_axes_glb[:, :, :, 0].numpy()  # bend direction (B, 16, 3)
+    b_axes_dir = bul_axes_glb[:, :, :, 0].numpy()  # back direction (B, 16, 3)
     u_axes_dir = bul_axes_glb[:, :, :, 1].numpy()  # up direction (B, 16, 3)
     l_axes_dir = bul_axes_glb[:, :, :, 2].numpy()  # left direction (B, 16, 3)
 
