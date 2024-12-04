@@ -13,10 +13,11 @@ def main():
                            center_idx=9,
                            mano_assets_root="assets/mano",
                            use_pca=False,
+                           side="right",
                            flat_hand_mean=True)
     hand_faces = mano_layer.th_faces  # (NF, 3)
 
-    axisFK = AxisLayerFK(mano_assets_root="assets/mano")
+    axisFK = AxisLayerFK(side=mano_layer.side,mano_assets_root="assets/mano")
     composed_ee = torch.zeros((1, 16, 3))
 
     #  transform order of right hand

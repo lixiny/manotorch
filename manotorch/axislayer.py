@@ -12,11 +12,15 @@ from manotorch.utils.geometry import matrix_to_euler_angles, euler_angles_to_mat
 
 class AxisAdaptiveLayer(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self, side: str = "right"):
         super(AxisAdaptiveLayer, self).__init__()
         self.joints_mapping = [5, 6, 7, 9, 10, 11, 17, 18, 19, 13, 14, 15, 1, 2, 3]
         self.parent_joints_mappings = [0, 5, 6, 0, 9, 10, 0, 17, 18, 0, 13, 14, 0, 1, 2]
-        up_axis_base = np.vstack((np.array([[0, 1, 0]]).repeat(13, axis=0), np.array([[1, 1, 1]]).repeat(3, axis=0)))
+        self.side = side
+        if side == "right":
+            up_axis_base = np.vstack((np.array([[0, 1, 0]]).repeat(13, axis=0), np.array([[1, 1, 1]]).repeat(3, axis=0)))
+        elif side == "left":
+            up_axis_base = np.vstack((np.array([[0, 1, 0]]).repeat(13, axis=0), np.array([[-1, 1, 1]]).repeat(3, axis=0)))
         self.register_buffer("up_axis_base", torch.from_numpy(up_axis_base).float().unsqueeze(0))
 
     def forward(self, hand_joints, transf):
@@ -34,7 +38,10 @@ class AxisAdaptiveLayer(torch.nn.Module):
         # b_axis = hand_joints[:, self.joints_mapping] - hand_joints[:, [i + 1 for i in self.joints_mapping]]
         b_axis = hand_joints[:, self.parent_joints_mappings] - hand_joints[:, self.joints_mapping]
         b_axis = (transf[:, 1:, :3, :3].transpose(2, 3) @ b_axis.unsqueeze(-1)).squeeze(-1)
-        b_axis_init = torch.tensor([1, 0, 0]).float().unsqueeze(0).unsqueeze(0).repeat(bs, 1, 1).to(b_axis.device)
+        if self.side == "right":
+            b_axis_init = torch.tensor([1, 0, 0]).float().unsqueeze(0).unsqueeze(0).repeat(bs, 1, 1).to(b_axis.device)
+        elif self.side == "left":
+            b_axis_init = torch.tensor([-1, 0, 0]).float().unsqueeze(0).unsqueeze(0).repeat(bs, 1, 1).to(b_axis.device)
         b_axis = torch.cat((b_axis_init, b_axis), dim=1)  # (B, 16, 3)
 
         l_axis = torch.cross(b_axis, self.up_axis_base.expand(bs, 16, 3))
@@ -60,7 +67,7 @@ class AxisLayerFK(Module):
         tmpl_joints = tmpl_mano.joints
         tmpl_transf_abs = tmpl_mano.transforms_abs  # tmpl_T_g_p
 
-        tmpl_b_axis, tmpl_u_axis, tmpl_l_axis = AxisAdaptiveLayer()(tmpl_joints, tmpl_transf_abs)  # (1, 16, 3)
+        tmpl_b_axis, tmpl_u_axis, tmpl_l_axis = AxisAdaptiveLayer(side=side)(tmpl_joints, tmpl_transf_abs)  # (1, 16, 3)
         tmpl_R_p_a = torch.cat((tmpl_b_axis.unsqueeze(-1), tmpl_u_axis.unsqueeze(-1), tmpl_l_axis.unsqueeze(-1)), dim=3)
         zero_tsl = torch.zeros(1, 16, 3, 1)
         zero_pad = torch.tensor([[[[0, 0, 0, 1]]]]).repeat(*zero_tsl.shape[0:2], 1, 1)
