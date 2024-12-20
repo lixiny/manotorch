@@ -11,6 +11,7 @@
   - [Anatomy Loss](#anatomy-loss)
   - [Composing the Hand](#composing-the-hand)
   - [Anchor Interpolation](#anchor-interpolation)
+- anatomy basis and loss can support both the **left and right hand** :open_hands:!
 
 <br />
 <br />
