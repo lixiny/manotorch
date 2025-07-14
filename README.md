@@ -109,6 +109,7 @@ MANOOutput = namedtuple(
 mano_output: MANOOutput = mano_layer(random_pose, random_shape)
 
 # retrieve 778 vertices, 21 joints and 16 SE3 transforms of each articulation
+# verts and joints in meters.
 verts = mano_output.verts  # (B, 778, 3), root(center_joint) relative
 joints = mano_output.joints  # (B, 21, 3), root relative
 transforms_abs = mano_output.transforms_abs  # (B, 16, 4, 4), root relative
