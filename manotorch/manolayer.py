@@ -348,6 +348,8 @@ class ManoLayer(torch.nn.Module):
             [215, 78, 121],
             [214, 215, 121],
         ])
+        if self.side == "left":
+            close_faces = close_faces[:, [2, 1, 0]]
         th_closed_faces = torch.cat([self.th_faces.clone().detach().cpu(), close_faces.long()])
         # Indices of faces added during closing --> should be ignored as they match the wrist
         # part of the hand, which is not an external surface of the human
